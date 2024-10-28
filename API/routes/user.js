@@ -12,46 +12,76 @@ const pool = mariadb.createPool({
     database: dbConfig.database
 });
 //Endpoints
-user.get('/', async (req, res) => {
-    let conn = await pool.getConnection();
-    let rows = await conn.query('show databases;');
-    conn.end();
-    return res.status(200).json({ code: 200, message: rows });
-});
-user.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-    if (email && password) {
+user.post('/updatePass', async (req, res) => {
+    const { email, oldPassword, newPassword} = req.body;
+    if (email, oldPassword, newPassword) {
         let conn = await pool.getConnection();
         try {
-            let row = await conn.query('select userID from users where email = ? and password = ?', [email, password]);
+            //console.log(req.tokenData); TODO
+            let row = await conn.query('select userID from users where email = ? and password = ?', [email, oldPassword]);
             if (row.length === 0) {
                 return res.status(401).json({ code: 401, message: 'Invalid credentials' });
             } else {  
-                return res.status(200).json({ code: 200, message: row });
-            }
+                await conn.query('update users set password = ? where email = ? and password = ?', [newPassword, email, oldPassword]);
+                return res.status(200).json({ code: 200, message: 'Password updated' });
+            } 
         } catch (error) {
             return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
         } finally {
             if (conn) conn.end();
-        }        
+        }
     } else return res.status(400).json({ code: 400, message: 'Incomplete data' });
 });
-user.post('/register', async (req, res) => {
-    const { name, lastname, email, password } = req.body;
-    if (name && lastname && email && password) {
-        const { sha256 } = await import('crypto-hash');
-        const userID = (await sha256(name + lastname + email)).slice(0, 32);
+user.post('/resgisterPicture', async (req, res) => {
+    const { email, password, userID, fileName } = req.body;
+    if (email && password && userID && fileName) {
         let conn = await pool.getConnection();
         try {
-            let rows = await conn.query('select userID from users where userID = ?', [userID]);
-            if (rows.length > 0) {
-                return res.status(409).json({ code: 409, message: 'User already exists' });
-            } else {
-                await conn.query('insert into users values (?,?,?,?,?)', [userID, name, lastname, email, password]);
-                return res.status(201).json({ code: 201, message: 'User registered' });
-            }
+            if (await conn.query('select userID from users where email = ? and password = ?', [email, password]).length === 0) {
+                return res.status(401).json({ code: 401, message: 'Invalid credentials' });
+            } else {  
+                let row = await conn.query('select fileName from userImageDetails where userID = ? and fileName not like "%auth%";', [userID]);
+                if (row.length === 0) {
+                    await conn.query('insert into userImageDetails values (?,?)', [userID, fileName]);
+                    return res.status(200).json({ code: 200, message: 'Picture registered' });
+                } else {
+                    fs.unlink('users/' + row[0].fileName, (err) => {
+                        if (err) return res.status(500).json({ code: 500, message: 'Internal server error: ' + err });
+                    });
+                    await conn.query('update userImageDetails set fileName = ? where userID = ? and fileName = ?;', [fileName, userID, row[0].fileName]);
+                    return res.status(200).json({ code: 200, message: 'Picture updated' });
+                }
+            } 
         } catch (error) {
-            res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
+            return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
+        } finally {
+            if (conn) conn.end();
+        }
+    } else return res.status(400).json({ code: 400, message: 'Incomplete data' });
+});
+user.post('/resgisterAuthPicture', async (req, res) => {
+    const { email, password, userID, fileName } = req.body;
+    console.log(email, password, userID, fileName);
+    if (email && password && userID && fileName) {
+        let conn = await pool.getConnection();
+        try {
+            if (await conn.query('select userID from users where email = ? and password = ?', [email, password]).length === 0) {
+                return res.status(401).json({ code: 401, message: 'Invalid credentials' });
+            } else {  
+                let row = await conn.query('select fileName from userImageDetails where userID = ? and fileName like "%auth%";', [userID]);
+                if (row.length === 0) {
+                    await conn.query('insert into userImageDetails values (?,?)', [userID, fileName]);
+                    return res.status(200).json({ code: 200, message: 'Picture registered' });
+                } else {
+                    fs.unlink('users/' + row[0].fileName, (err) => {
+                        if (err) return res.status(500).json({ code: 500, message: 'Internal server error: ' + err });
+                    });
+                    await conn.query('update userImageDetails set fileName = ? where userID = ? and fileName = ?;', [fileName, userID, row[0].fileName]);
+                    return res.status(200).json({ code: 200, message: 'Picture updated' });
+                }
+            } 
+        } catch (error) {
+            return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
         } finally {
             if (conn) conn.end();
         }
