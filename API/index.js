@@ -10,6 +10,7 @@ const auth = require('./middleware/auth');
 const login = require('./routes/login');
 const user = require('./routes/user');
 const upload = require('./routes/upload');
+const content = require('./routes/content');
 //Config
 app.use(cors());
 app.use(morgan('dev'));
@@ -20,6 +21,7 @@ app.use('/login', login);
 app.use(auth);
 app.use('/user', user);
 app.use('/upload', upload);
+app.use('/content', content);
 app.use(notFound);
 //Server status
 app.listen(process.env.PORT || 3000, () => {

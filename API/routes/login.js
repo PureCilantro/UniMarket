@@ -56,7 +56,6 @@ login.post('/getToken', async (req, res) => {
     const { userID } = req.body;
     if (userID) {
         let conn = await pool.getConnection();
-        
         if (await conn.query('select userID from users where userID = ?', [userID]).length === 0) {
             return res.status(401).json({ code: 401, message: 'Invalid credentials' });
         } else {
