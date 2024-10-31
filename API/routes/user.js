@@ -18,11 +18,11 @@ user.post('/updatePass', async (req, res) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            let row = await conn.query('select userID from users where email = ? and password = ?', [email, oldPassword]);
+            let row = await conn.query('select userID from users where email = ? and password = ?;', [email, oldPassword]);
             if (row.length === 0 || row[0].userID !== req.tokenData.userID) {
                 return res.status(401).json({ code: 401, message: 'Invalid credentials' });
             } else {  
-                await conn.query('update users set password = ? where email = ? and password = ?', [newPassword, email, oldPassword]);
+                await conn.query('update users set password = ? where email = ? and password = ?;', [newPassword, email, oldPassword]);
                 return res.status(200).json({ code: 200, message: 'Password updated' });
             } 
         } catch (error) {
@@ -32,13 +32,13 @@ user.post('/updatePass', async (req, res) => {
         }
     } else return res.status(400).json({ code: 400, message: 'Incomplete data' });
 });
-user.post('/resgisterPicture', async (req, res) => {
-    const { email, password, userID, fileName } = req.body;
-    if (email && password && userID && fileName) {
+user.post('/resgisterUserPicture', async (req, res) => {
+    const { userID, fileName } = req.body;
+    if (userID && fileName) {
         let conn;
         try {
             conn = await pool.getConnection();
-            let row = await conn.query('select userID from users where email = ? and password = ?', [email, password]);
+            let row = await conn.query('select userID from users where userID = ?;', [userID]);
             if (row.length === 0 || row[0].userID !== req.tokenData.userID) {
                 return res.status(401).json({ code: 401, message: 'Invalid credentials' });
             } else {  
@@ -62,13 +62,12 @@ user.post('/resgisterPicture', async (req, res) => {
     } else return res.status(400).json({ code: 400, message: 'Incomplete data' });
 });
 user.post('/resgisterAuthPicture', async (req, res) => {
-    const { email, password, userID, fileName } = req.body;
-    console.log(email, password, userID, fileName);
-    if (email && password && userID && fileName) {
+    const { userID, fileName } = req.body;
+    if (userID && fileName) {
         let conn;
         try {
             conn = await pool.getConnection();
-            let row = await conn.query('select userID from users where email = ? and password = ?', [email, password]);
+            let row = await conn.query('select userID from users where userID = ?;', [userID]);
             if (row.length === 0 || row[0].userID !== req.tokenData.userID) {
                 return res.status(401).json({ code: 401, message: 'Invalid credentials' });
             } else {  
