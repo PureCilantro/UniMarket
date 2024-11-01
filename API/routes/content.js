@@ -59,8 +59,7 @@ content.get('/getPostsByCategory', async (req, res) => {
         const categories = JSON.parse(cats).id;
         try {
             conn = await pool.getConnection();
-            //TODO
-            //let rows = await conn.query('select p.* from posts p join postCategoryDetails c on p.postID = c.postID where c.categoryID in (?) and p.active = 1 and p.availableFrom <= ? and p.availableTo >= ? and p.postID > ? limit 5;', [categories, time, time, row]);
+            let rows = await conn.query('select p.* from posts p join postCategoryDetails c on p.postID = c.postID where c.categoryID in (?) and p.active = 1 and p.availableFrom <= ? and p.availableTo >= ? and p.postID > ? order by p.postID limit 5;', [categories.toString(), time, time, row]);
             return res.status(200).json({ code: 200, message: rows });
         } catch (error) {
             return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
