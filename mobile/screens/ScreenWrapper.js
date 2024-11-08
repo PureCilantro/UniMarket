@@ -5,11 +5,13 @@ import { MD3DarkTheme, MD3LightTheme } from 'react-native-paper';
 
 const darkTheme = { ...MD3DarkTheme, colors: { ...MD3DarkTheme.colors } };
 const lightTheme = { ...MD3LightTheme, colors: { ...MD3LightTheme.colors } };
+export let globalLightTheme = true;
 
 let theme = lightTheme;
 
 export function toggleTheme(isDark) {
     theme = isDark ? darkTheme : lightTheme;
+    globalDarkTheme = !isDark;
 }
 
 export function ScreenWrapper({
