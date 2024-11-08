@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { toggleTheme, globalLightTheme, ScreenWrapper} from './ScreenWrapper';
-import { useFocusEffect } from '@react-navigation/native';
-import { MD3DarkTheme, MD3LightTheme, Button, TextInput, HelperText } from 'react-native-paper';
+import { ScreenWrapper} from './ScreenWrapper';
+import { Button, TextInput, HelperText } from 'react-native-paper';
 import Icon from '@expo/vector-icons/Feather';
-
-const darkTheme = { ...MD3DarkTheme, colors: { ...MD3DarkTheme.colors } };
-const lightTheme = { ...MD3LightTheme, colors: { ...MD3LightTheme.colors } };
-let theme = lightTheme;
+import { colors } from '../theme/colors';
+import { ThemeContext } from '../contexts/ThemeContext';
 
 export default function LoginScreen({ navigation }) {
     const [email, setEmail] = useState('');
@@ -15,16 +12,9 @@ export default function LoginScreen({ navigation }) {
     const [emailError, setEmailError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(true);
-    const [isDark, setIsDark] = useState(globalLightTheme);
 
-    useFocusEffect(
-        React.useCallback(() => {
-            setIsDark(globalLightTheme);
-            console.log(isDark + ' ' + globalLightTheme);
-        }, [])
-    );
-
-    theme = isDark ? darkTheme : lightTheme;
+    const {theme, toggleTheme} = useContext(ThemeContext);
+    let activeColors = colors[theme.mode];
     
     const handleLogin = () => {
         email === '' ? setEmailError(true) : setEmailError(false);
@@ -38,30 +28,29 @@ export default function LoginScreen({ navigation }) {
         <ScreenWrapper>
             <View style={styles.iconContainer}>
                 <Icon
-                    name={isDark ? 'sun' : 'moon'}
+                    name={theme.mode === 'light' ? 'sun' : 'moon'}
                     size={24}
-                    color={theme.colors.tertiary}
+                    color={activeColors.tertiary}
                     padding={10}
                     onPress={() => {
-                        setIsDark(!isDark);
-                        toggleTheme(isDark);
+                        toggleTheme();
                     }}
                 />
             </View>
             <View style={styles.container}>
-                <Text style={[styles.title, { color: theme.colors.onTertiary }]}>Ingresa</Text>
+                <Text style={[styles.title, { color: activeColors.tertiary }]}>Ingresa</Text>
                 <TextInput
                     label="Correo"
                     style={styles.input}
                     placeholder="Ingresa tu correo institucional"
-                    placeholderTextColor={theme.colors.onBackground}
+                    placeholderTextColor={activeColors.outline}
                     value={email}
                     onChangeText={(text) => {
                         setEmail(text);
                         setEmailError(false);
                     }}
-                    activeUnderlineColor={theme.colors.tertiary}
-                    textColor={theme.colors.onTertiary}
+                    activeUnderlineColor={activeColors.tertiary}
+                    textColor={activeColors.onBackground}
                 />
                 <HelperText type='error' padding='none' visible={emailError}>
                     Ingresa un correo
@@ -70,20 +59,20 @@ export default function LoginScreen({ navigation }) {
                     label="Contraseña"
                     style={styles.input}
                     placeholder="Ingresa tu contraseña"
-                    placeholderTextColor={theme.colors.onBackground}
+                    placeholderTextColor={activeColors.outline}
                     value={password}
                     onChangeText={(text) => {
                         setPassword(text);
                         setPasswordError(false);
                     }}
                     secureTextEntry={passwordVisible}
-                    activeUnderlineColor={theme.colors.tertiary}
-                    textColor={theme.colors.onTertiary}
+                    activeUnderlineColor={activeColors.tertiary}
+                    textColor={activeColors.onBackground}
                     autoCapitalize='none'
                     right={
                         <TextInput.Icon
                             icon={passwordVisible ? 'eye-off' : 'eye'}
-                            color={theme.colors.tertiary}
+                            color={activeColors.tertiary}
                             onPress={() => setPasswordVisible(!passwordVisible)}
                         />
                     }
@@ -93,10 +82,10 @@ export default function LoginScreen({ navigation }) {
                 </HelperText>
                 <Button 
                     mode="elevated"
-                    style={[styles.button,{backgroundColor: theme.colors.tertiary}]}
+                    style={[styles.button,{backgroundColor: activeColors.tertiary}]}
                     onPress={handleLogin} 
-                ><Text style={[styles.text, {color: theme.colors.onTertiary}]}>Sign in</Text></Button>
-                <Text style={[styles.text, {color: theme.colors.onTertiary, padding:15}]}>¿No tienes cuenta? <Text style={{color: theme.colors.primary}} onPress={() => navigation.navigate('Register')}>Regístrate</Text></Text>
+                ><Text style={[styles.text, {color: activeColors.onTertiary}]}>Sign in</Text></Button>
+                <Text style={[styles.text, {color: activeColors.outline, padding:15}]}>¿No tienes cuenta? <Text style={{color: activeColors.primary}} onPress={() => navigation.navigate('Register')}>Regístrate</Text></Text>
             </View>
         </ScreenWrapper>
     );

@@ -1,30 +1,22 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MD3DarkTheme, MD3LightTheme } from 'react-native-paper';
-
-const darkTheme = { ...MD3DarkTheme, colors: { ...MD3DarkTheme.colors } };
-const lightTheme = { ...MD3LightTheme, colors: { ...MD3LightTheme.colors } };
-export let globalLightTheme = true;
-
-let theme = lightTheme;
-
-export function toggleTheme(isDark) {
-    theme = isDark ? darkTheme : lightTheme;
-    globalDarkTheme = !isDark;
-}
+import { colors } from '../theme/colors';
+import { ThemeContext } from '../contexts/ThemeContext';
 
 export function ScreenWrapper({
     children,
     style
 }) {
+    const {theme} = useContext(ThemeContext);
+    let activeColors = colors[theme.mode];
     
     const insets = useSafeAreaInsets();
 
     const containerStyle = [
         styles.container,
         {
-            backgroundColor: theme.colors.background,
+            backgroundColor: activeColors.background,
             paddingTop: insets.top,
             paddingBottom: insets.bottom,
             paddingLeft: insets.left,
