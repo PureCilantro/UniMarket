@@ -1,33 +1,43 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { ScreenWrapper} from './ScreenWrapper';
-import { Button, TextInput, HelperText } from 'react-native-paper';
+import { Text, Button, TextInput, HelperText, Portal, Dialog } from 'react-native-paper';
 import Icon from '@expo/vector-icons/Feather';
 import { colors } from '../theme/colors';
 import { ThemeContext } from '../contexts/ThemeContext';
 
 export default function LoginScreen({ navigation }) {
+    //Variables de estado
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    //Variables de error
     const [emailError, setEmailError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(true);
-
+    const [dialogVisible, setDialogVisible] = useState(false);
+    const toggleDialog = () => setDialogVisible(!dialogVisible);
+    //Contexto de tema
     const {theme, toggleTheme} = useContext(ThemeContext);
     let activeColors = colors[theme.mode];
-    
+    //Función para manejar el inicio de sesión
     const handleLogin = () => {
         email === '' ? setEmailError(true) : setEmailError(false);
         password === '' ? setPasswordError(true) : setPasswordError(false);
+        const emailRegex = new RegExp('^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$');
         if (email && password) {
+            if (!emailRegex.test(email)) {
+                setDialogVisible(true);
+            }
             //TODO
+            navigation.replace('ContentScreen');
         }
     };
+
 
     return (
         <ScreenWrapper>
             <View style={styles.iconContainer}>
-                <Icon
+                <Icon                                  //Icono de sol o luna para cambiar el tema
                     name={theme.mode === 'light' ? 'sun' : 'moon'}
                     size={24}
                     color={activeColors.tertiary}
@@ -39,7 +49,7 @@ export default function LoginScreen({ navigation }) {
             </View>
             <View style={styles.container}>
                 <Text style={[styles.title, { color: activeColors.tertiary }]}>Ingresa</Text>
-                <TextInput
+                <TextInput                                                 //Input para correo
                     label="Correo"
                     style={styles.input}
                     placeholder="Ingresa tu correo institucional"
@@ -51,11 +61,12 @@ export default function LoginScreen({ navigation }) {
                     }}
                     activeUnderlineColor={activeColors.tertiary}
                     textColor={activeColors.onBackground}
+                    textContentType='emailAddress'
                 />
                 <HelperText type='error' padding='none' visible={emailError}>
                     Ingresa un correo
                 </HelperText>
-                <TextInput
+                <TextInput                                                 //Input para contraseña
                     label="Contraseña"
                     style={styles.input}
                     placeholder="Ingresa tu contraseña"
@@ -68,6 +79,7 @@ export default function LoginScreen({ navigation }) {
                     secureTextEntry={passwordVisible}
                     activeUnderlineColor={activeColors.tertiary}
                     textColor={activeColors.onBackground}
+                    textContentType='password'
                     autoCapitalize='none'
                     right={
                         <TextInput.Icon
@@ -80,12 +92,28 @@ export default function LoginScreen({ navigation }) {
                 <HelperText type='error' padding='none' visible={passwordError}>
                     Ingresa una contraseña
                 </HelperText>
-                <Button 
+                <Button                                                    //Botón para iniciar sesión
                     mode="elevated"
                     style={[styles.button,{backgroundColor: activeColors.tertiary}]}
                     onPress={handleLogin} 
                 ><Text style={[styles.text, {color: activeColors.onTertiary}]}>Sign in</Text></Button>
-                <Text style={[styles.text, {color: activeColors.outline, padding:15}]}>¿No tienes cuenta? <Text style={{color: activeColors.primary}} onPress={() => navigation.navigate('Register')}>Regístrate</Text></Text>
+                <Text style={[styles.text, {color: activeColors.outline, padding:15}]}>
+                    ¿No tienes cuenta?{' '}
+                    <Text style={{color: activeColors.primary}} onPress={() => navigation.navigate('Register')}>
+                        Regístrate
+                    </Text>
+                </Text>
+                <Portal>
+                    <Dialog visible={dialogVisible} onDismiss={toggleDialog}>
+                        <Dialog.Title>Error</Dialog.Title>
+                        <Dialog.Content>
+                            <Text variant="bodyMedium">Ingresa un correo válido</Text>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <Button onPress={toggleDialog}>Ok</Button>
+                        </Dialog.Actions>
+                    </Dialog>
+                </Portal>
             </View>
         </ScreenWrapper>
     );

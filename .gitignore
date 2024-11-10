@@ -3,6 +3,7 @@
 # files
 uploads/
 users/
+api.js
 
 # dependencies
 node_modules/

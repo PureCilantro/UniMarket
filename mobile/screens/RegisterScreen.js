@@ -1,40 +1,58 @@
 import React, { useState, useContext} from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { ScreenWrapper} from './ScreenWrapper';
-import { Button, TextInput, HelperText } from 'react-native-paper';
+import { Text, Button, TextInput, HelperText, Portal, Dialog } from 'react-native-paper';
 import Icon from '@expo/vector-icons/Feather';
 import { colors } from '../theme/colors';
 import { ThemeContext } from '../contexts/ThemeContext';
 
 export default function RegisterScreen({ navigation }) {
+    //Variables de estado
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [name, setName] = useState('');
     const [lastName, setLastName] = useState('');
-
+    //Variables de error
     const [nameError, setNameError] = useState(false);
     const [lastNameError, setLastNameError] = useState(false);
     const [emailError, setEmailError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
+    const [confirmPasswordError, setConfirmPasswordError] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(true);
-
+    const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(true);
+    const [emailDialogVisible, setEmailDialogVisible] = useState(false);
+    const [pwDialogVisible, setPwDialogVisible] = useState(false);
+    const toggleEmailDialog = () => setEmailDialogVisible(!emailDialogVisible);
+    const togglePwDialog = () => setPwDialogVisible(!pwDialogVisible);
+    const emailRegex = new RegExp('^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$');
+    //Contexto de tema
     const {theme, toggleTheme} = useContext(ThemeContext);
     let activeColors = colors[theme.mode];
-
-    const handleLogin = () => {
+    //Función para manejar el registro
+    const handleRegister = () => {
         email === '' ? setEmailError(true) : setEmailError(false);
         password === '' ? setPasswordError(true) : setPasswordError(false);
+        confirmPassword === '' ? setConfirmPasswordError(true) : setConfirmPasswordError(false);
         name === '' ? setNameError(true) : setNameError(false);
         lastName === '' ? setLastNameError(true) : setLastNameError(false);
-        if (email && password && name && lastName) {
+        if (email && name && lastName && password && confirmPassword) { 
+            if (!emailRegex.test(email)) {
+                setEmailDialogVisible(true);
+            }
+            if (password != confirmPassword) {
+                setPwDialogVisible(true);
+            }
             //TODO
+
+            navigation.navigate('Login');
         }
     };
 
     return (
         <ScreenWrapper>
             <View style={styles.iconContainer}>
-                <Icon
+                <Icon                                                      //Icono de sol o luna para cambiar el tema
                     name={theme.mode === 'light' ? 'sun' : 'moon'}
                     size={24}
                     color={activeColors.tertiary}
@@ -46,7 +64,7 @@ export default function RegisterScreen({ navigation }) {
             </View>
             <View style={styles.container}>
                 <Text style={[styles.title, { color: activeColors.tertiary }]}>Registro</Text>
-                <TextInput
+                <TextInput                                                 //Input para correo
                     style={styles.input}
                     label="Correo"
                     placeholder="Ingresa tu correo institucional"
@@ -56,13 +74,19 @@ export default function RegisterScreen({ navigation }) {
                         setEmail(text);
                         setEmailError(false);
                     }}
+                    onBlur={() => {
+                        if (!emailRegex.test(email)) {
+                            setEmailError(true);
+                        }
+                    }}
                     activeUnderlineColor={activeColors.tertiary}
                     textColor={activeColors.onBackground}
+                    textContentType='emailAddress'
                 />
                 <HelperText type='error' padding='none' visible={emailError}>
-                    Ingresa un correo
+                    Ingresa un correo válido
                 </HelperText>
-                <TextInput
+                <TextInput                                                 //Input para nombre
                     style={styles.input}
                     label="Nombre"
                     placeholder="Ingresa tu nombre/s"
@@ -74,11 +98,12 @@ export default function RegisterScreen({ navigation }) {
                     }}
                     activeUnderlineColor={activeColors.tertiary}
                     textColor={activeColors.onBackground}
+                    textContentType='name'
                 />
                 <HelperText type='error' padding='none' visible={nameError}>
                     Ingresa tu nombre
                 </HelperText>
-                <TextInput
+                <TextInput                                                 //Input para apellidos
                     style={styles.input}
                     label="Apellidos"
                     placeholder="Ingresa tu apellido/s"
@@ -90,14 +115,15 @@ export default function RegisterScreen({ navigation }) {
                     }}
                     activeUnderlineColor={activeColors.tertiary}
                     textColor={activeColors.onBackground}
+                    textContentType='familyName'
                 />
                 <HelperText type='error' padding='none' visible={lastNameError}>
                     Ingresa tu apellido
                 </HelperText>
-                <TextInput
+                <TextInput                                                 //Input para contraseña
                     style={styles.input}
                     label="Contraseña"
-                    placeholder="Ingresa tu contraseña"
+                    placeholder="Ingresa una contraseña"
                     placeholderTextColor={activeColors.outline}
                     value={password}
                     onChangeText={(text) => {
@@ -107,6 +133,7 @@ export default function RegisterScreen({ navigation }) {
                     secureTextEntry={passwordVisible}
                     activeUnderlineColor={activeColors.tertiary}
                     textColor={activeColors.onBackground}
+                    textContentType='password'
                     autoCapitalize='none'
                     right={
                         <TextInput.Icon
@@ -119,12 +146,67 @@ export default function RegisterScreen({ navigation }) {
                 <HelperText type='error' padding='none' visible={passwordError}>
                     Ingresa una contraseña
                 </HelperText>
-                <Button 
+                <TextInput                                                 //Input para confirmar contraseña
+                    style={styles.input}
+                    label="Confirma contraseña"
+                    placeholder="Ingresa tu contraseña de nuevo"
+                    placeholderTextColor={activeColors.outline}
+                    value={confirmPassword}
+                    onChangeText={(text) => {
+                        setConfirmPassword(text);
+                        if (password != text) {
+                            setConfirmPasswordError(true);
+                        } else {
+                            setConfirmPasswordError(false);
+                        }
+                    }}
+                    secureTextEntry={confirmPasswordVisible}
+                    activeUnderlineColor={activeColors.tertiary}
+                    textColor={activeColors.onBackground}
+                    textContentType='password'
+                    autoCapitalize='none'
+                    right={
+                        <TextInput.Icon
+                            icon={confirmPasswordVisible ? 'eye-off' : 'eye'}
+                            color={activeColors.tertiary}
+                            onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+                        />
+                    }
+                />
+                <HelperText type='error' padding='none' visible={confirmPasswordError}>
+                    La contraseña no coincide
+                </HelperText>
+                <Button                                                    //Botón para registrarse
                     mode="elevated"
                     style={[styles.button,{backgroundColor: activeColors.tertiary}]}
-                    onPress={handleLogin} 
+                    onPress={handleRegister} 
                 ><Text style={[styles.text, {color: activeColors.onTertiary}]}>Sign in</Text></Button>
-                <Text style={[styles.text, {color: activeColors.outline, padding:15}]}>¿Ya tienes cuenta? <Text style={{color: activeColors.primary}} onPress={() => navigation.navigate('Login')}>Ingresa</Text></Text>
+                <Text style={[styles.text, {color: activeColors.outline, padding:15}]}> 
+                    ¿Ya tienes cuenta?{' '}
+                    <Text style={{color: activeColors.primary}} onPress={() => navigation.navigate('Login')}>
+                        Ingresa
+                    </Text>
+                </Text>
+                <Portal>
+                    <Dialog visible={emailDialogVisible} onDismiss={toggleEmailDialog}>
+                        <Dialog.Title>Error</Dialog.Title>
+                        <Dialog.Content>
+                            <Text variant="bodyMedium">Ingresa un correo válido</Text>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <Button onPress={toggleEmailDialog}>Ok</Button>
+                        </Dialog.Actions>
+                    </Dialog>
+                    <Dialog visible={pwDialogVisible} onDismiss={togglePwDialog}>
+                        <Dialog.Title>Error</Dialog.Title>
+                        <Dialog.Content>
+                            <Text variant="bodyMedium">Las contraseñas no coinciden</Text>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <Button onPress={togglePwDialog}>Ok</Button>
+                        </Dialog.Actions>
+                    </Dialog>
+                </Portal>
             </View>
         </ScreenWrapper>
     );

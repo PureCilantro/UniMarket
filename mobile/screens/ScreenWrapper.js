@@ -1,6 +1,7 @@
 import React, {useContext} from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PaperProvider } from 'react-native-paper';
 import { colors } from '../theme/colors';
 import { ThemeContext } from '../contexts/ThemeContext';
 
@@ -26,7 +27,9 @@ export function ScreenWrapper({
 
     return (
         <>
-            <View style={[containerStyle, style]}>{children}</View>
+            <PaperProvider theme={theme}>
+                <View style={[containerStyle, style]}>{children}</View>
+            </PaperProvider>
         </>
     );
 }
