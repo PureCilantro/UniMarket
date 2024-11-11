@@ -1,10 +1,13 @@
 import React, { useState, useContext} from 'react';
 import { View, StyleSheet } from 'react-native';
-import { ScreenWrapper} from './ScreenWrapper';
 import { Text, Button, TextInput, HelperText, Portal, Dialog } from 'react-native-paper';
 import Icon from '@expo/vector-icons/Feather';
+import axios from 'axios';
+
 import { colors } from '../theme/colors';
 import { ThemeContext } from '../contexts/ThemeContext';
+import { ScreenWrapper} from './ScreenWrapper';
+import { api } from '../config/api';
 
 export default function RegisterScreen({ navigation }) {
     //Variables de estado
@@ -23,8 +26,13 @@ export default function RegisterScreen({ navigation }) {
     const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(true);
     const [emailDialogVisible, setEmailDialogVisible] = useState(false);
     const [pwDialogVisible, setPwDialogVisible] = useState(false);
+    const [dialogVisible, setDialogVisible] = useState(false);
+    const [registerError, setRegisterError] = useState(false);
     const toggleEmailDialog = () => setEmailDialogVisible(!emailDialogVisible);
     const togglePwDialog = () => setPwDialogVisible(!pwDialogVisible);
+    const toggleDialog = () => setDialogVisible(!dialogVisible);
+    const toggleRegisterError = () => setRegisterError(!registerError);
+    const goToLogin = () => navigation.navigate('Login');
     const emailRegex = new RegExp('^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$');
     //Contexto de tema
     const {theme, toggleTheme} = useContext(ThemeContext);
@@ -43,9 +51,17 @@ export default function RegisterScreen({ navigation }) {
             if (password != confirmPassword) {
                 setPwDialogVisible(true);
             }
-            //TODO
-
-            navigation.navigate('Login');
+            axios.post(api + 'login/register', body = { name: name.toLowerCase(), lastname: lastName.toLowerCase(), email: email.toLowerCase(), password: password})
+                .then(async (response) => {
+                    if (response.status === 201) {
+                        setDialogVisible(true);
+                    } else if (response.status === 500) {
+                        setRegisterError(true);
+                    }
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
         }
     };
 
@@ -70,8 +86,8 @@ export default function RegisterScreen({ navigation }) {
                     placeholder="Ingresa tu correo institucional"
                     placeholderTextColor={activeColors.outline}
                     value={email}
-                    onChangeText={(text) => {
-                        setEmail(text);
+                    onChangeText={(email) => {
+                        setEmail(email);
                         setEmailError(false);
                     }}
                     onBlur={() => {
@@ -92,8 +108,8 @@ export default function RegisterScreen({ navigation }) {
                     placeholder="Ingresa tu nombre/s"
                     placeholderTextColor={activeColors.outline}
                     value={name}
-                    onChangeText={(text) => {
-                        setName(text);
+                    onChangeText={(name) => {
+                        setName(name);
                         setNameError(false);
                     }}
                     activeUnderlineColor={activeColors.tertiary}
@@ -109,8 +125,8 @@ export default function RegisterScreen({ navigation }) {
                     placeholder="Ingresa tu apellido/s"
                     placeholderTextColor={activeColors.outline}
                     value={lastName}
-                    onChangeText={(text) => {
-                        setLastName(text);
+                    onChangeText={(lastname) => {
+                        setLastName(lastname);
                         setLastNameError(false);
                     }}
                     activeUnderlineColor={activeColors.tertiary}
@@ -126,8 +142,8 @@ export default function RegisterScreen({ navigation }) {
                     placeholder="Ingresa una contraseña"
                     placeholderTextColor={activeColors.outline}
                     value={password}
-                    onChangeText={(text) => {
-                        setPassword(text);
+                    onChangeText={(pass) => {
+                        setPassword(pass);
                         setPasswordError(false);
                     }}
                     secureTextEntry={passwordVisible}
@@ -152,9 +168,9 @@ export default function RegisterScreen({ navigation }) {
                     placeholder="Ingresa tu contraseña de nuevo"
                     placeholderTextColor={activeColors.outline}
                     value={confirmPassword}
-                    onChangeText={(text) => {
-                        setConfirmPassword(text);
-                        if (password != text) {
+                    onChangeText={(pass) => {
+                        setConfirmPassword(pass);
+                        if (password != pass) {
                             setConfirmPasswordError(true);
                         } else {
                             setConfirmPasswordError(false);
@@ -204,6 +220,24 @@ export default function RegisterScreen({ navigation }) {
                         </Dialog.Content>
                         <Dialog.Actions>
                             <Button onPress={togglePwDialog}>Ok</Button>
+                        </Dialog.Actions>
+                    </Dialog>
+                    <Dialog visible={dialogVisible} onDismiss={toggleDialog}>
+                        <Dialog.Title>Registro</Dialog.Title>
+                        <Dialog.Content>
+                            <Text variant="bodyMedium">Se registró la cuenta!</Text>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <Button onPress={goToLogin}>Ok</Button>
+                        </Dialog.Actions>
+                    </Dialog>
+                    <Dialog visible={registerError} onDismiss={toggleRegisterError}>
+                        <Dialog.Title>Error</Dialog.Title>
+                        <Dialog.Content>
+                            <Text variant="bodyMedium">No se pudo registrar la cuenta</Text>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <Button onPress={toggleRegisterError}>Ok</Button>
                         </Dialog.Actions>
                     </Dialog>
                 </Portal>

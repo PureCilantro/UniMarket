@@ -26,15 +26,23 @@ content.get('/getCategories', async (req, res) => {
 });
 content.get('/getPosts', async (req, res) => {
     const { time , row } = req.query;
-    let conn;
-    try {
-        conn = await pool.getConnection();
-        let rows = await conn.query('select * from posts where active = 1 and availableFrom <= ? and availableTo >= ? and postID > ? limit 5;', [time, time, row]);
-        return res.status(200).json(rows);
-    } catch (error) {
-        return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
-    } finally {
-        if (conn) conn.release();
+    if (time && row) {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            let rows = await conn.query('select * from posts where active = 1 and availableFrom <= ? and availableTo >= ? and postID > ? limit 5;', [time, time, row]);
+            for (let i = 0; i < rows.length; i++) {
+                let images = await conn.query('select fileName from postImageDetails where postID = ?;', [rows[i].postID]);
+                rows[i].images = images;
+            }
+            return res.status(200).json(rows);
+        } catch (error) {
+            return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
+        } finally {
+            if (conn) conn.release();
+        }
+    } else {
+        return res.status(400).json({ code: 400, message: 'Incomplete data' });
     }
 });
 content.get('/getPostsByUser', async (req, res) => {
@@ -156,7 +164,7 @@ content.post('/deletePost', async (req, res) => {
         }
     } else return res.status(400).json({ code: 400, message: 'Incomplete data' });
 });
-content.post('/resgisterPostPicture', async (req, res) => {
+content.post('/registerPostPicture', async (req, res) => {
     const {postID, userID, fileName } = req.body;
     if (postID && userID && fileName) {
         let conn;
@@ -165,8 +173,9 @@ content.post('/resgisterPostPicture', async (req, res) => {
             let row = await conn.query('select userID from posts where postID = ? and userID = ?;', [postID, userID]);
             if (row.length === 0 || row[0].userID !== req.tokenData.userID) {
                 return res.status(401).json({ code: 401, message: 'Invalid credentials' });
-            } else {  
+            } else {
                 await conn.query('insert into postImageDetails values (?,?);', [postID, fileName]);
+                return res.status(201).json({ code: 201, message: 'Image registered' });
             } 
         } catch (error) {
             return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
@@ -189,6 +198,7 @@ content.post('/deletePostPicture', async (req, res) => {
                     if (error) return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
                 });
                 await conn.query('delete from postImageDetails where postID = ? and fileName = ?;', [postID, fileName]);
+                return res.status(200).json({ code: 200, message: 'Image deleted' });
             }
         } catch (error) {
             return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });

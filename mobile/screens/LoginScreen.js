@@ -1,10 +1,15 @@
 import React, { useState, useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { ScreenWrapper} from './ScreenWrapper';
 import { Text, Button, TextInput, HelperText, Portal, Dialog } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from '@expo/vector-icons/Feather';
+import axios from 'axios';
+
+
+import { ScreenWrapper} from './ScreenWrapper';
 import { colors } from '../theme/colors';
 import { ThemeContext } from '../contexts/ThemeContext';
+import { api } from '../config/api';
 
 export default function LoginScreen({ navigation }) {
     //Variables de estado
@@ -15,7 +20,9 @@ export default function LoginScreen({ navigation }) {
     const [passwordError, setPasswordError] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(true);
     const [dialogVisible, setDialogVisible] = useState(false);
+    const [credentialsError, setCredentialsError] = useState(false);
     const toggleDialog = () => setDialogVisible(!dialogVisible);
+    const toggleCredentialsError = () => setCredentialsError(!credentialsError);
     //Contexto de tema
     const {theme, toggleTheme} = useContext(ThemeContext);
     let activeColors = colors[theme.mode];
@@ -28,11 +35,20 @@ export default function LoginScreen({ navigation }) {
             if (!emailRegex.test(email)) {
                 setDialogVisible(true);
             }
-            //TODO
-            navigation.replace('ContentScreen');
+            axios.post(api + 'login', body = { email: email.toLowerCase(), password: password})
+                .then(async (response) => {
+                    if (response.status === 200) {
+                        await AsyncStorage.setItem('userID', response.data.message[0].userID);
+                        navigation.replace('ContentScreen');
+                    } else if (response.status === 401) {
+                        setCredentialsError(true);
+                    }
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
         }
     };
-
 
     return (
         <ScreenWrapper>
@@ -55,8 +71,8 @@ export default function LoginScreen({ navigation }) {
                     placeholder="Ingresa tu correo institucional"
                     placeholderTextColor={activeColors.outline}
                     value={email}
-                    onChangeText={(text) => {
-                        setEmail(text);
+                    onChangeText={(email) => {
+                        setEmail(email);
                         setEmailError(false);
                     }}
                     activeUnderlineColor={activeColors.tertiary}
@@ -72,8 +88,8 @@ export default function LoginScreen({ navigation }) {
                     placeholder="Ingresa tu contraseña"
                     placeholderTextColor={activeColors.outline}
                     value={password}
-                    onChangeText={(text) => {
-                        setPassword(text);
+                    onChangeText={(pass) => {
+                        setPassword(pass);
                         setPasswordError(false);
                     }}
                     secureTextEntry={passwordVisible}
@@ -111,6 +127,15 @@ export default function LoginScreen({ navigation }) {
                         </Dialog.Content>
                         <Dialog.Actions>
                             <Button onPress={toggleDialog}>Ok</Button>
+                        </Dialog.Actions>
+                    </Dialog>
+                    <Dialog visible={credentialsError} onDismiss={toggleCredentialsError}>
+                        <Dialog.Title>Error</Dialog.Title>
+                        <Dialog.Content>
+                            <Text variant="bodyMedium">Credenciales incorrectas</Text>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <Button onPress={toggleCredentialsError}>Ok</Button>
                         </Dialog.Actions>
                     </Dialog>
                 </Portal>
