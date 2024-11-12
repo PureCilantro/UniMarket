@@ -196,7 +196,7 @@ export default function RegisterScreen({ navigation }) {
                     mode="elevated"
                     style={[styles.button,{backgroundColor: activeColors.tertiary}]}
                     onPress={handleRegister} 
-                ><Text style={[styles.text, {color: activeColors.onTertiary}]}>Sign in</Text></Button>
+                ><Text style={[styles.text, {color: activeColors.onTertiary}]}>Registrarse</Text></Button>
                 <Text style={[styles.text, {color: activeColors.outline, padding:15}]}> 
                     ¿Ya tienes cuenta?{' '}
                     <Text style={{color: activeColors.primary}} onPress={() => navigation.navigate('Login')}>

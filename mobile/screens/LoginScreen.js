@@ -112,7 +112,7 @@ export default function LoginScreen({ navigation }) {
                     mode="elevated"
                     style={[styles.button,{backgroundColor: activeColors.tertiary}]}
                     onPress={handleLogin} 
-                ><Text style={[styles.text, {color: activeColors.onTertiary}]}>Sign in</Text></Button>
+                ><Text style={[styles.text, {color: activeColors.onTertiary}]}>Ingresar</Text></Button>
                 <Text style={[styles.text, {color: activeColors.outline, padding:15}]}>
                     ¿No tienes cuenta?{' '}
                     <Text style={{color: activeColors.primary}} onPress={() => navigation.navigate('Register')}>
