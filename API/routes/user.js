@@ -12,6 +12,27 @@ const pool = mariadb.createPool({
     database: dbConfig.database
 });
 //Endpoints
+user.get('/getUserInfo', async (req, res) => {
+    const { userID } = req.query;
+    if (userID) {
+        let conn;
+        try {
+            if (userID === req.tokenData.userID) {
+                conn = await pool.getConnection();
+                let row = await conn.query('select name, lastname, email from users where userID = ?;', [userID]);
+                if (row.length === 0) {
+                    return res.status(404).json({ code: 404, message: 'User not found' });
+                } else {
+                    return res.status(200).json({ code: 200, message: row[0] });
+                }
+            }
+        } catch (error) {
+            return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
+        } finally {
+            if (conn) conn.release();
+        }
+    } else return res.status(400).json({ code: 400, message: 'Incomplete data' });
+});
 user.post('/updatePass', async (req, res) => {
     const { email, oldPassword, newPassword} = req.body;
     if (email && oldPassword && newPassword) {

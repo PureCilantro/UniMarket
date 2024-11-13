@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Button, Text, Card, ActivityIndicator } from 'react-native-paper';
-import { View, StyleSheet, FlatList } from 'react-native';
+import { Text, Card, ActivityIndicator} from 'react-native-paper';
+import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import Icon from '@expo/vector-icons/Feather';
 import axios from 'axios';
 
@@ -20,6 +20,7 @@ export default function LoginScreen({ navigation }) {
     const [lastID, setLastID] = useState(0);
     const [currentPage, setCurrentPage ] = useState(1);
     //Función para traer el contenido
+    const [refresh, setRefresh] = useState(false);
     const [posts, setPosts] = useState([]);
     const getPosts = async () => {
         const userID = await AsyncStorage.getItem('userID');
@@ -48,7 +49,7 @@ export default function LoginScreen({ navigation }) {
 
     const renderItem = ({ item }) => {
         return (
-            <Card style={styles.card}>
+            <Card style={styles.card} onPress={() => handlePressCard(item)}>
                 <Card.Title title={item.title} />
                 <Card.Content>
                     <Text>{item.description}</Text>
@@ -57,6 +58,18 @@ export default function LoginScreen({ navigation }) {
             </Card>
         );
     };
+
+    const handlePressCard = (item) => {
+        navigation.navigate('PostScreen', { 
+            postID: item.postID,
+            title: item.title,
+            description: item.description,
+            price: item.price,
+            quantity: item.quantity,
+            images: item.images,
+            available: item.availableTo
+        });
+    }
 
     const renderLoading = () => {
         return (
@@ -109,6 +122,19 @@ export default function LoginScreen({ navigation }) {
                     )}
                     onEndReached={loadMore}
                     onEndReachedThreshold={0}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refresh}
+                            onRefresh={() => {
+                                setRefresh(true);
+                                setPosts([]);
+                                setLastID(0);
+                                setEnd(false);
+                                setCurrentPage(1);
+                                setRefresh(false);
+                            }}
+                        />
+                    }
                 />
             </View>
         </ScreenWrapper>
@@ -122,7 +148,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
-        paddingHorizontal: 12,
+        paddingHorizontal: 5,
     },
     card: {
         margin: 10,

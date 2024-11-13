@@ -6,6 +6,7 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ContentScreen from './screens/ContentScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import PostScreen from './screens/PostScreen';
 
 import { ThemeContext } from './contexts/ThemeContext';
 
@@ -26,6 +27,7 @@ export default function App() {
           <Stack.Screen name="Register" component={RegisterScreen} options={{headerShown: false}} />
           <Stack.Screen name="ContentScreen" component={ContentScreen} options={{headerShown: false}} />
           <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{headerShown: false}} />
+          <Stack.Screen name="PostScreen" component={PostScreen} options={{headerShown: false}} />
         </Stack.Navigator>
       </ThemeContext.Provider>
     </NavigationContainer>    

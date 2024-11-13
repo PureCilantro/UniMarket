@@ -1,5 +1,5 @@
 import React, { useState, useContext} from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { Text, Button, TextInput, HelperText, Portal, Dialog } from 'react-native-paper';
 import Icon from '@expo/vector-icons/Feather';
 import axios from 'axios';
@@ -16,6 +16,7 @@ export default function RegisterScreen({ navigation }) {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [name, setName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [loading, setLoading] = useState(false);
     //Variables de error
     const [nameError, setNameError] = useState(false);
     const [lastNameError, setLastNameError] = useState(false);
@@ -51,6 +52,7 @@ export default function RegisterScreen({ navigation }) {
             if (password != confirmPassword) {
                 setPwDialogVisible(true);
             }
+            setLoading(true);
             axios.post(api + 'login/register', body = { name: name.toLowerCase(), lastname: lastName.toLowerCase(), email: email.toLowerCase(), password: password})
                 .then(async (response) => {
                     if (response.status === 201) {
@@ -196,7 +198,10 @@ export default function RegisterScreen({ navigation }) {
                     mode="elevated"
                     style={[styles.button,{backgroundColor: activeColors.tertiary}]}
                     onPress={handleRegister} 
-                ><Text style={[styles.text, {color: activeColors.onTertiary}]}>Registrarse</Text></Button>
+                    disabled={loading}
+                >
+                    {loading ? <ActivityIndicator size={'small'} color={activeColors.onTertiary} /> : <Text style={[styles.text, {color: activeColors.onTertiary}]}>Registrarse</Text>}
+                </Button>
                 <Text style={[styles.text, {color: activeColors.outline, padding:15}]}> 
                     ¿Ya tienes cuenta?{' '}
                     <Text style={{color: activeColors.primary}} onPress={() => navigation.navigate('Login')}>

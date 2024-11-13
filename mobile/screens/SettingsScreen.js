@@ -1,22 +1,39 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, Switch, Card, ActivityIndicator } from 'react-native-paper';
-import { ScreenWrapper} from './ScreenWrapper';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Text, Switch, Card } from 'react-native-paper';
+import axios from 'axios';
 import Icon from '@expo/vector-icons/Feather';
+
 import { colors } from '../theme/colors';
 import { ThemeContext } from '../contexts/ThemeContext';
+import { ScreenWrapper} from './ScreenWrapper';
+import { api } from '../config/api';
 
 export default function SettingsScreen({ navigation }) {
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     //Contexto de tema
     const {theme, toggleTheme} = useContext(ThemeContext);
     let activeColors = colors[theme.mode];
     //Funciones de acceso a datos
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const getInfo = () => { 
+    const getInfo = async () => { 
         setLoading(true);
-        //TODO
+        const userID = await AsyncStorage.getItem('userID');
+        try {
+            const token = await axios.post(api + 'login/getToken', { userID: userID });
+            const config = { 
+                headers: { authorization: `Bearer ${token.data.message}`},
+                params: { userID: userID }
+            };
+            const response = await axios.get(api + 'user/getUserInfo', { headers: config.headers, params: config.params });
+            setName(response.data.message.name + ' ' + response.data.message.lastname);
+            setEmail(response.data.message.email);
+            setLoading(false);
+        } catch (error) {
+            console.error(error);
+        }
     };
     //Funciones de edición de datos
     const showAuth = () => {
@@ -28,10 +45,9 @@ export default function SettingsScreen({ navigation }) {
 
     const renderLoading = () => {
         return (
-            loading ?
             <View>
-                <ActivityIndicator size="large" color={activeColors.tertiary} />
-            </View> : ''
+                <ActivityIndicator color={activeColors.tertiary} />
+            </View>
         );
     }
 
@@ -42,7 +58,7 @@ export default function SettingsScreen({ navigation }) {
     return (
         <ScreenWrapper>
             <View style={styles.rowContainer}>
-                <Icon                                                      //Icono de sol o luna para cambiar el tema
+                <Icon
                     name={'arrow-left'}
                     size={24}
                     color={activeColors.tertiary}
@@ -58,7 +74,7 @@ export default function SettingsScreen({ navigation }) {
                         <View style={[styles.row, {color: activeColors.tertiaryContainer}]}>
                             <Text style={{color: activeColors.tertiary, fontSize:11}}>Nombre</Text>
                             <View style={styles.innerRowInfo}>
-                                <Text style={{color: activeColors.tertiary, fontSize:11}}>{renderLoading() + name}</Text>
+                                <Text style={{color: activeColors.tertiary, fontSize:11}}>{loading ? renderLoading() : name}</Text>
                             </View>
                         </View>
                     </Card.Content>
@@ -68,7 +84,7 @@ export default function SettingsScreen({ navigation }) {
                         <View style={[styles.row, {color: activeColors.tertiaryContainer}]}>
                             <Text style={{color: activeColors.tertiary, fontSize:11}}>Correo institucional</Text>
                             <View style={styles.innerRowInfo}>
-                                <Text style={{color: activeColors.tertiary, fontSize:11}}>{renderLoading() + email}</Text>
+                                <Text style={{color: activeColors.tertiary, fontSize:11}}>{loading ? renderLoading() : email}</Text>
                             </View>
                         </View>
                     </Card.Content>

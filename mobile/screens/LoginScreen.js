@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { Text, Button, TextInput, HelperText, Portal, Dialog } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from '@expo/vector-icons/Feather';
@@ -15,6 +15,7 @@ export default function LoginScreen({ navigation }) {
     //Variables de estado
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     //Variables de error
     const [emailError, setEmailError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
@@ -35,6 +36,7 @@ export default function LoginScreen({ navigation }) {
             if (!emailRegex.test(email)) {
                 setDialogVisible(true);
             }
+            setLoading(true);
             axios.post(api + 'login', body = { email: email.toLowerCase(), password: password})
                 .then(async (response) => {
                     if (response.status === 200) {
@@ -112,7 +114,10 @@ export default function LoginScreen({ navigation }) {
                     mode="elevated"
                     style={[styles.button,{backgroundColor: activeColors.tertiary}]}
                     onPress={handleLogin} 
-                ><Text style={[styles.text, {color: activeColors.onTertiary}]}>Ingresar</Text></Button>
+                    disabled={loading}
+                >
+                    {loading ? <ActivityIndicator size={'small'} color={activeColors.onTertiary} /> : <Text style={[styles.text, {color: activeColors.onTertiary}]}>Ingresar</Text>}
+                </Button>
                 <Text style={[styles.text, {color: activeColors.outline, padding:15}]}>
                     ¿No tienes cuenta?{' '}
                     <Text style={{color: activeColors.primary}} onPress={() => navigation.navigate('Register')}>

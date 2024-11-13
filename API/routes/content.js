@@ -32,8 +32,9 @@ content.get('/getPosts', async (req, res) => {
             conn = await pool.getConnection();
             let rows = await conn.query('select * from posts where active = 1 and availableFrom <= ? and availableTo >= ? and postID > ? limit 5;', [time, time, row]);
             for (let i = 0; i < rows.length; i++) {
-                let images = await conn.query('select fileName from postImageDetails where postID = ?;', [rows[i].postID]);
-                rows[i].images = images;
+                let coverImages = await conn.query('select fileName from postImageDetails where postID = ? and filename like "cover%";', [rows[i].postID]);
+                let otherImages = await conn.query('select fileName from postImageDetails where postID = ? and filename not like "cover%";', [rows[i].postID]);
+                rows[i].images = coverImages.concat(otherImages);
             }
             return res.status(200).json(rows);
         } catch (error) {
