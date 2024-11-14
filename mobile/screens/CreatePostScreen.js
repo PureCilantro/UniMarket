@@ -1,15 +1,17 @@
-import React, { useState, useContext } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, Button, TextInput, HelperText, Portal, Dialog } from 'react-native-paper';
+import React, { useState, useContext, useEffect } from 'react';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Text, Switch, Card, Button } from 'react-native-paper';
+import axios from 'axios';
 import Icon from '@expo/vector-icons/Feather';
 
-import { ScreenWrapper} from './ScreenWrapper';
 import { colors } from '../theme/colors';
 import { ThemeContext } from '../contexts/ThemeContext';
+import { ScreenWrapper} from './ScreenWrapper';
+import { api } from '../config/api';
 
-export default function PostScreen({ navigation, route }) {
-    //Variables de estado
-    const {postID, title, description, price, quantity, images, available} = route.params;
+export default function CreatePostScreen({ navigation }) {
+    const [loading, setLoading] = useState(false);
     //Contexto de tema
     const {theme, toggleTheme} = useContext(ThemeContext);
     let activeColors = colors[theme.mode];
@@ -24,24 +26,16 @@ export default function PostScreen({ navigation, route }) {
                     padding={10}
                     onPress={() => { navigation.goBack() }}
                 />                
-            </View>
-            <View styles={styles.rowContainer}>
-                <Text style={[styles.title, { color: activeColors.tertiary }]}>{title}</Text>
+                <Text style={[styles.title, { color: activeColors.tertiary }]}>Crear Publicación</Text>
             </View>
             <View style={styles.container}>
-                {/* TODO */}
+                
             </View>
         </ScreenWrapper>
     );
 }
 const styles = StyleSheet.create({
-    rowContainer: {
-        flexDirection: 'row', 
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-    },
     container: {
-        flex: 1,
         justifyContent: 'center',
         paddingHorizontal: 16,
         marginBottom: 100,

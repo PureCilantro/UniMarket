@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Text, Switch, Card } from 'react-native-paper';
+import { Text, Switch, Card, Button } from 'react-native-paper';
 import axios from 'axios';
 import Icon from '@expo/vector-icons/Feather';
 
@@ -12,6 +12,7 @@ import { api } from '../config/api';
 
 export default function SettingsScreen({ navigation }) {
     const [loading, setLoading] = useState(false);
+    const [logLoading, setLogLoading] = useState(false);
     //Contexto de tema
     const {theme, toggleTheme} = useContext(ThemeContext);
     let activeColors = colors[theme.mode];
@@ -28,13 +29,25 @@ export default function SettingsScreen({ navigation }) {
                 params: { userID: userID }
             };
             const response = await axios.get(api + 'user/getUserInfo', { headers: config.headers, params: config.params });
-            setName(response.data.message.name + ' ' + response.data.message.lastname);
+            const fName = String(response.data.message.name).charAt(0).toUpperCase() + String(response.data.message.name).slice(1);
+            const lName = String(response.data.message.lastname).charAt(0).toUpperCase() + String(response.data.message.lastname).slice(1);
+            setName( fName + ' ' + lName);
             setEmail(response.data.message.email);
             setLoading(false);
         } catch (error) {
             console.error(error);
         }
     };
+    const renderLoading = () => {
+        return (
+            <View>
+                <ActivityIndicator color={activeColors.tertiary} />
+            </View>
+        );
+    };
+    useEffect(() => {
+        getInfo();
+    }, []);
     //Funciones de edición de datos
     const showAuth = () => {
         //TODO
@@ -42,18 +55,13 @@ export default function SettingsScreen({ navigation }) {
     const editAuth = () => {
         //TODO
     };
-
-    const renderLoading = () => {
-        return (
-            <View>
-                <ActivityIndicator color={activeColors.tertiary} />
-            </View>
-        );
+    //Función de cierre de sesión
+    const handleLogout = async () => {
+        setLogLoading(true);
+        await AsyncStorage.removeItem('userID');
+        setLogLoading(false);
+        navigation.replace('Login');
     }
-
-    useEffect(() => {
-        getInfo();
-    }, []);
 
     return (
         <ScreenWrapper>
@@ -100,8 +108,8 @@ export default function SettingsScreen({ navigation }) {
                         </View>
                     </Card.Content>
                 </Card>
-                <Text style={[styles.subtitle, { color: activeColors.tertiary }]}>Aplicación</Text>
-                <Card style={{backgroundColor: activeColors.surfaceVariant}}>
+                <Text style={[styles.subtitle, { color: activeColors.tertiary}]}>Aplicación</Text>
+                <Card style={{backgroundColor: activeColors.surfaceVariant, marginVertical: 3 }}>
                     <Card.Content>
                         <View style={[styles.row, {color: activeColors.tertiaryContainer}]}>
                             <Icon
@@ -110,11 +118,19 @@ export default function SettingsScreen({ navigation }) {
                                 color={activeColors.tertiary}
                                 padding={10}
                             />
-                            <Text style={[styles.cardText,{color: activeColors.tertiary}]}>Tema</Text>
+                            <Text style={[styles.cardText,{color: activeColors.tertiary, marginLeft: -200}]}>Tema</Text>
                             <Switch value={theme.mode === 'dark'} onValueChange={toggleTheme}/>
                         </View>
                     </Card.Content>
                 </Card>
+                <Button                                                    //Botón para iniciar sesión
+                    mode="elevated"
+                    style={[styles.button,{backgroundColor: activeColors.tertiary}]}
+                    onPress={handleLogout} 
+                    disabled={logLoading}
+                >
+                    {logLoading ? <ActivityIndicator size={'small'} color={activeColors.onTertiary} /> : <Text style={[styles.text, {color: activeColors.onTertiary}]}>Cerrar sesión</Text>}
+                </Button>
             </View>
         </ScreenWrapper>
     );
@@ -147,7 +163,6 @@ const styles = StyleSheet.create({
     },
     cardText: {
         fontSize: 16,
-        marginLeft: -200,
     },
     innerRow: {
         flexDirection: 'row',
@@ -164,5 +179,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row', 
         justifyContent: 'flex-start',
         alignItems: 'center',
+    },
+    button: {
+        fontSize: 16,
+        marginTop: 13,
+        alignSelf: 'center',
+        width: '90%',
+    },
+    text: {
+        fontSize: 16,
+        textAlign: 'center'
     },
 });

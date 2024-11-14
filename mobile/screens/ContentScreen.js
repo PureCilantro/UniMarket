@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Text, Card, ActivityIndicator} from 'react-native-paper';
+import { Text, Card, ActivityIndicator, FAB} from 'react-native-paper';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import Icon from '@expo/vector-icons/Feather';
 import axios from 'axios';
@@ -19,6 +19,7 @@ export default function LoginScreen({ navigation }) {
     const [end, setEnd] = useState(false);
     const [lastID, setLastID] = useState(0);
     const [currentPage, setCurrentPage ] = useState(1);
+    const [isExtended, setIsExtended] = useState(true);
     //Función para traer el contenido
     const [refresh, setRefresh] = useState(false);
     const [posts, setPosts] = useState([]);
@@ -136,6 +137,14 @@ export default function LoginScreen({ navigation }) {
                         />
                     }
                 />
+                <FAB
+                    icon={'plus'}
+                    label={'Crear publicación'}
+                    onPress={() => navigation.navigate('CreatePostScreen')}
+                    animateFrom={'right'}
+                    iconMode={'static'}
+                    style={[styles.fabStyle]}
+                />
             </View>
         </ScreenWrapper>
     );
@@ -158,5 +167,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 10
-    }
+    },
+    fabStyle: {
+        bottom: 20,
+        right: 20,
+        position: 'absolute',
+    },
 });
