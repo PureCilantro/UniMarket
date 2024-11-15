@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
@@ -18,26 +17,15 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [theme, setTheme] = useState({mode: 'light'});
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const toggleTheme = () => {
     setTheme({mode: theme.mode === 'light' ? 'dark' : 'light'});
   };
 
-  useEffect(() => {
-    const checkLogin = async () => {
-      const userID = await AsyncStorage.getItem('userID');
-      if (userID) {
-        setIsLoggedIn(true);
-      }
-    };
-    checkLogin();
-  }, []);
-
   return (
     <NavigationContainer>
       <ThemeContext.Provider value={{theme, toggleTheme}}>
-        <Stack.Navigator initialRouteName={isLoggedIn ? 'ContentScreen' : 'Login'}>
+        <Stack.Navigator initialRouteName='Login'>
           <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{headerShown: false}} />
           <Stack.Screen name="ContentScreen" component={ContentScreen} options={{headerShown: false}} />
