@@ -16,7 +16,6 @@ export default function LoginScreen({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     //Variables de error
     const [emailError, setEmailError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
@@ -52,17 +51,6 @@ export default function LoginScreen({ navigation }) {
                 });
         }
     };
-
-    useEffect(() => {
-        const checkLogin = async () => {
-            const userID = await AsyncStorage.getItem('userID');
-            if (userID) {
-                setIsLoggedIn(true);
-                navigation.replace('ContentScreen');
-            }
-        };
-        checkLogin();
-    }, []);
 
     return (
         <ScreenWrapper>

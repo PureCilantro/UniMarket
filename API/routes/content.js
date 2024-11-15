@@ -46,9 +46,9 @@ content.get('/getPosts', async (req, res) => {
         return res.status(400).json({ code: 400, message: 'Incomplete data' });
     }
 });
-content.get('/getPostsByUser', async (req, res) => {
-    const { user: userID } = req.query;
-    if (userID) {
+content.get('/getUserPosts', async (req, res) => {
+    const { userID } = req.query;
+    if (userID && req.tokenData.userID === userID) {
         let conn;
         try {
             conn = await pool.getConnection();

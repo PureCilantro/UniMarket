@@ -7,7 +7,7 @@ import { ScreenWrapper} from './ScreenWrapper';
 import { colors } from '../theme/colors';
 import { ThemeContext } from '../contexts/ThemeContext';
 
-export default function PostScreen({ navigation, route }) {
+export default function PostDetailScreen({ navigation, route }) {
     //Variables de estado
     const {postID, title, description, price, quantity, images, available} = route.params;
     //Contexto de tema
