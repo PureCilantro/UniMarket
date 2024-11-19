@@ -5,7 +5,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from '@expo/vector-icons/Feather';
 import axios from 'axios';
 
-
 import { ScreenWrapper} from './ScreenWrapper';
 import { colors } from '../theme/colors';
 import { ThemeContext } from '../contexts/ThemeContext';
@@ -42,12 +41,12 @@ export default function LoginScreen({ navigation }) {
                 .then(async (response) => {
                     if (response.status === 200) {
                         await AsyncStorage.setItem('userID', response.data.message[0].userID);
-                        navigation.replace('ContentScreen');
-                    } else if (response.status === 401) {
-                        setCredentialsError(true);
+                        navigation.replace('HomeTabs');
                     }
                 })
                 .catch((error) => {
+                    setCredentialsError(true);
+                    setLoading(false);
                     console.error(error);
                 });
         }
@@ -57,7 +56,7 @@ export default function LoginScreen({ navigation }) {
         const checkLogin = async () => {
             const userID = await AsyncStorage.getItem('userID');
             if (userID) {
-                navigation.replace('ContentScreen');
+                navigation.replace('HomeTabs');
             }
         };
         checkLogin();

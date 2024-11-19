@@ -19,11 +19,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
 //Routes
 app.use('/login', login);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/users', express.static(path.join(__dirname, 'users')));
 app.use(auth);
 app.use('/user', user);
 app.use('/upload', upload);
 app.use('/content', content);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(notFound);
 //Server status
 app.listen(process.env.PORT || 3000, () => {

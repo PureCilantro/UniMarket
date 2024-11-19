@@ -13,7 +13,7 @@ export default function PostDetailScreen({ navigation, route }) {
     //Contexto de tema
     const {theme, toggleTheme} = useContext(ThemeContext);
     let activeColors = colors[theme.mode];
-
+    console.log(postID, title, description, price, quantity, images, available);
     return (
         <ScreenWrapper>
             <View style={styles.rowContainer}>

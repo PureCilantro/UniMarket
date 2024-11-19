@@ -20,6 +20,10 @@ user.get('/getUserInfo', async (req, res) => {
             if (userID === req.tokenData.userID) {
                 conn = await pool.getConnection();
                 let row = await conn.query('select name, lastname, email from users where userID = ?;', [userID]);
+                let avatar = await conn.query('select fileName from userImageDetails where userID = ? and fileName not like "%auth%";', [userID]);
+                let auth = await conn.query('select fileName from userImageDetails where userID = ? and fileName like "%auth%";', [userID]);
+                row[0].avatar = avatar.length === 0 ? '' : avatar[0].fileName;
+                row[0].auth = auth.length === 0 ? '' : auth[0].fileName;
                 if (row.length === 0) {
                     return res.status(404).json({ code: 404, message: 'User not found' });
                 } else {
@@ -53,13 +57,14 @@ user.post('/updatePass', async (req, res) => {
         }
     } else return res.status(400).json({ code: 400, message: 'Incomplete data' });
 });
-user.post('/resgisterUserPicture', async (req, res) => {
+user.post('/registerUserPicture', async (req, res) => {
     const { userID, fileName } = req.body;
     if (userID && fileName) {
         let conn;
         try {
             conn = await pool.getConnection();
             let row = await conn.query('select userID from users where userID = ?;', [userID]);
+            console.log(userID, req.tokenData.userID);
             if (row.length === 0 || row[0].userID !== req.tokenData.userID) {
                 return res.status(401).json({ code: 401, message: 'Invalid credentials' });
             } else {  

@@ -53,7 +53,26 @@ export default function ContentScreen({ navigation }) {
                 <Card.Title title={item.title} />
                 <Card.Content>
                     <Text>{item.description}</Text>
-                    <Text>{item.price}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={{color:activeColors.outline}}>Desde: </Text>
+                            <Text>{formatTime(item.availableFrom)}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={{color:activeColors.outline}}>Precio: </Text>
+                            <Text>{`$${item.price.toLocaleString()}`}</Text>
+                        </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={{color:activeColors.outline}}>Hasta: </Text>
+                            <Text>{formatTime(item.availableTo)}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={{color:activeColors.outline}}>Cantidad: </Text>
+                            <Text>{item.quantity}</Text>
+                        </View>
+                    </View>
                 </Card.Content>
             </Card>
         );
@@ -92,6 +111,15 @@ export default function ContentScreen({ navigation }) {
         setCurrentPage(currentPage + 1);
     }
 
+    const formatTime = (obj) => {
+        const time = obj.toString();
+        const hour = parseInt(time.substring(0, 2));
+        const minute = time.substring(2);
+        const period = hour >= 12 ? 'pm' : 'am';
+        const formattedHour = hour % 12 || 12;
+        return `${formattedHour}:${minute} ${period}`;
+    };
+
     useEffect(() => {
         getPosts();
     }, [currentPage]);
@@ -99,6 +127,15 @@ export default function ContentScreen({ navigation }) {
     return (
         <ScreenWrapper>
             <View style={styles.iconContainer}>
+                <Icon
+                    name='search'
+                    size={24}
+                    color={activeColors.tertiary}
+                    padding={10}
+                    onPress={() => {
+                        
+                    }}
+                />
                 <Icon                                  //Icono de configuración
                     name={'settings'}
                     size={24}
@@ -143,7 +180,8 @@ export default function ContentScreen({ navigation }) {
 const styles = StyleSheet.create({
     iconContainer: {
         flexDirection: 'row', 
-        justifyContent: 'flex-end'
+        justifyContent: 'space-between',
+        paddingHorizontal: 10
     },
     container: {
         flex: 1,
@@ -152,7 +190,7 @@ const styles = StyleSheet.create({
     },
     card: {
         margin: 10,
-        height: 200
+        height: 400
     },
     endContainer: {
         justifyContent: 'center',

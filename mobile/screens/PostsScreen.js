@@ -1,7 +1,8 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Text, Card, ActivityIndicator} from 'react-native-paper';
+import { Text, Card, FAB, Switch, Button} from 'react-native-paper';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Icon from '@expo/vector-icons/Feather';
 import axios from 'axios';
 
@@ -33,9 +34,34 @@ export default function PostsScreen({ navigation }) {
         }
     };
 
-    useEffect(() => {
-        fetchPosts();
-    }, []);
+    const toggleActive = async (postID) => {
+        const userID = await AsyncStorage.getItem('userID');
+        try {
+            const token = await axios.post(api + 'login/getToken', { userID: userID });
+            const config = { 
+                headers: { authorization: `Bearer ${token.data.message}` },
+            };
+            await axios.post(api + 'content/togglePost', {postID: postID, userID: userID}, { headers: config.headers });
+            fetchPosts();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const formatTime = (obj) => {
+        const time = obj.toString();
+        const hour = parseInt(time.substring(0, 2));
+        const minute = time.substring(2);
+        const period = hour >= 12 ? 'pm' : 'am';
+        const formattedHour = hour % 12 || 12;
+        return `${formattedHour}:${minute} ${period}`;
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchPosts();
+        }, [])
+    );
 
     const renderItem = ({ item }) => {
         return (
@@ -43,11 +69,53 @@ export default function PostsScreen({ navigation }) {
                 <Card.Title title={item.title} />
                 <Card.Content>
                     <Text>{item.description}</Text>
-                    <Text>{item.price}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={{color:activeColors.outline}}>Desde: </Text>
+                            <Text>{formatTime(item.availableFrom)}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={{color:activeColors.outline}}>Precio: </Text>
+                            <Text>{`$${item.price.toLocaleString()}`}</Text>
+                        </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={{color:activeColors.outline}}>Hasta: </Text>
+                            <Text>{formatTime(item.availableTo)}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={{color:activeColors.outline}}>Cantidad: </Text>
+                            <Text>{item.quantity}</Text>
+                        </View>
+                    </View>
                 </Card.Content>
+                <Card.Actions>
+                    <Button 
+                        mode='elevated'
+                        style={{ backgroundColor: activeColors.tertiary}}
+                        onPress={() => handleEditCard(item)}
+                    >
+                        <Text style={{ color: activeColors.onTertiary }}>Editar</Text>
+                    </Button>
+                    <Text style={{ color: activeColors.outline }}>  Activo</Text>
+                    <Switch value={item.active === 1} onValueChange={() => {toggleActive(item.postID)}} color={activeColors.tertiary}/>
+                </Card.Actions>
             </Card>
         );
     };
+
+    const handleEditCard = (item) => {
+        navigation.navigate('EditPostScreen', { 
+            postID: item.postID,
+            pTitle: item.title,
+            pDescription: item.description,
+            pPrice: item.price,
+            pQuantity: item.quantity,
+            pAvailableTo: item.availableTo,
+            pAvailableFrom: item.availableFrom,
+        });
+    }
 
     const handlePressCard = (item) => {
         navigation.navigate('PostDetailScreen', { 
@@ -57,7 +125,8 @@ export default function PostsScreen({ navigation }) {
             price: item.price,
             quantity: item.quantity,
             images: item.images,
-            available: item.availableTo
+            available: item.availableTo,
+            active: item.active
         });
     }
 
@@ -92,6 +161,13 @@ export default function PostsScreen({ navigation }) {
                     }
                 />
             </View>
+            <FAB
+                label='Crear publicación'
+                style={[styles.fabStyle, { backgroundColor: activeColors.tertiary }]}
+                icon="plus"
+                color={activeColors.onTertiary}
+                onPress={() => navigation.navigate('CreatePostScreen')}
+            />
         </ScreenWrapper>
     );
 };
@@ -108,7 +184,6 @@ const styles = StyleSheet.create({
     },
     card: {
         margin: 10,
-        height: 200
     },
     endContainer: {
         justifyContent: 'center',
