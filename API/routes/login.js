@@ -69,7 +69,7 @@ login.post('/getToken', async (req, res) => {
                 const token = jwt.sign({
                     userID: userID
                 }, "debugkey", {
-                    expiresIn: "1h"
+                    expiresIn: "5s"
                 });
                 return res.status(200).json({ code: 200, message: token });
             }

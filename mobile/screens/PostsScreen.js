@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Text, Card, FAB, Switch, Button} from 'react-native-paper';
+import { Text, Card, FAB, Switch, Button, ActivityIndicator} from 'react-native-paper';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from '@expo/vector-icons/Feather';
@@ -18,6 +18,7 @@ export default function PostsScreen({ navigation }) {
     //Variables de estado
     const [posts, setPosts] = useState([]);
     const [refresh, setRefresh] = useState(false);
+    const [switchToggle, setSwitchToggle] = useState(false);
 
     const fetchPosts = async () => {
         const userID = await AsyncStorage.getItem('userID');
@@ -36,12 +37,14 @@ export default function PostsScreen({ navigation }) {
 
     const toggleActive = async (postID) => {
         const userID = await AsyncStorage.getItem('userID');
+        setSwitchToggle(true);
         try {
             const token = await axios.post(api + 'login/getToken', { userID: userID });
             const config = { 
                 headers: { authorization: `Bearer ${token.data.message}` },
             };
             await axios.post(api + 'content/togglePost', {postID: postID, userID: userID}, { headers: config.headers });
+            setSwitchToggle(false);
             fetchPosts();
         } catch (error) {
             console.error(error);
@@ -49,7 +52,8 @@ export default function PostsScreen({ navigation }) {
     }
 
     const formatTime = (obj) => {
-        const time = obj.toString();
+        let time = obj.toString();
+        time.length === 3 ? time = '0' + time : null
         const hour = parseInt(time.substring(0, 2));
         const minute = time.substring(2);
         const period = hour >= 12 ? 'pm' : 'am';
@@ -99,7 +103,12 @@ export default function PostsScreen({ navigation }) {
                         <Text style={{ color: activeColors.onTertiary }}>Editar</Text>
                     </Button>
                     <Text style={{ color: activeColors.outline }}>  Activo</Text>
-                    <Switch value={item.active === 1} onValueChange={() => {toggleActive(item.postID)}} color={activeColors.tertiary}/>
+                    <Switch 
+                        value={item.active === 1} 
+                        onValueChange={() => {toggleActive(item.postID)}} 
+                        color={activeColors.tertiary}
+                        disabled={switchToggle}
+                        />
                 </Card.Actions>
             </Card>
         );

@@ -14,7 +14,7 @@ export default function InboxScreen({ navigation }) {
     return (
         <ScreenWrapper>
             <View style={styles.container}>
-                <Text style={[styles.title, { color: activeColors.tertiary }]}>Inbox</Text>
+                <Text style={[styles.title, { color: activeColors.tertiary }]}>Work in progress</Text>
             </View>
         </ScreenWrapper>
     );

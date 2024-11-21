@@ -112,7 +112,8 @@ export default function ContentScreen({ navigation }) {
     }
 
     const formatTime = (obj) => {
-        const time = obj.toString();
+        let time = obj.toString();
+        time.length === 3 ? time = '0' + time : null
         const hour = parseInt(time.substring(0, 2));
         const minute = time.substring(2);
         const period = hour >= 12 ? 'pm' : 'am';
