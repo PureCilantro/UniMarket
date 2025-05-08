@@ -3,6 +3,7 @@
 # files
 uploads/
 users/
+.env
 
 # dependencies
 node_modules/

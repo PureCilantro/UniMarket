@@ -1,32 +1,32 @@
 //Dependencies
-const express = require('express');
-const morgan = require('morgan');
-const cors = require('cors');
-const app = express();
-const path = require('path');
-//Middleware
-const notFound = require('./middleware/notFound');
-const auth = require('./middleware/auth');
+import express from 'express';
+import morgan from 'morgan';
+import cors from 'cors';
+import dotenv from 'dotenv';
+dotenv.config();
 //Routes
-const login = require('./routes/login');
-const user = require('./routes/user');
-const upload = require('./routes/upload');
-const content = require('./routes/content');
-//Config
+import login from './routes/login.js';
+
+
+
+
+//Middleware
+import auth from './middleware/auth.js';
+const app = express();
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true}));
-//Routes
+app.use(express.urlencoded({ extended: true }));
+//Endpoints
 app.use('/login', login);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/users', express.static(path.join(__dirname, 'users')));
-app.use(auth);
-app.use('/user', user);
-app.use('/upload', upload);
-app.use('/content', content);
-app.use(notFound);
-//Server status
-app.listen(process.env.PORT || 3000, () => {
+
+
+
+
+app.use((req, res, next) => {
+    res.status(404).send({ message: 'Not found' });
+});
+
+app.listen(process.env.PORT || 3200, () => {
     console.log('Server is running...');
 })

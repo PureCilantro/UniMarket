@@ -1,5 +1,5 @@
-const fs = require('fs');
-const folders = ['./users', './uploads'];
+import fs from 'fs';
+const folders = ['./temp'];
 
 folders.forEach(folder => {
   if (!fs.existsSync(folder)) {
