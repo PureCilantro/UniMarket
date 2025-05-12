@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 //Routes
 import login from './routes/login.js';
-
+import user from './routes/user.js';
 
 
 
@@ -19,6 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 //Endpoints
 app.use('/login', login);
+app.use('/user', auth, user);
 
 
 

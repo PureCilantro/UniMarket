@@ -51,10 +51,31 @@ A Token can be acquired from the getToken endpoint above and **one is needed per
 
 <br>
 
+### User information and edition `user/`
+
+#### Error Responses
+
+**Condition** : The information requested doesn't match the token owner.
+
+**Code** : `401 Unauthorized`
+
+```json
+{
+    "message": "Invalid credentials"
+}
+```
+
+<br>
+
+* [Get user info](userInfo.md) : [`GET user/getUserInfo`](../API/routes/user.js#L18)
+* [Update user info](updateUser.md) : [`POST user/updateUser`](../API/routes/user.js#L40)
+* [Update user password](password.md) : [`POST user/updatePass`](../API/routes/user.js#L58)
+* [Update user avatar](avatar.md) : [`POST user/updateAvatar`](../API/routes/user.js#L77)
+* [Update user authentication image](auth.md) : [`POST user/updateAuth`](../API/routes/user.js#L102)
+
 ### Content access
 
 ### Post creation
 
 ### Post edition
 
-### User edition

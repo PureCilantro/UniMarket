@@ -1,41 +1,59 @@
-const express = require('express');
+import express from 'express';
+import bcrypt from 'bcrypt';
+import pool from '../config/DBmanager.js';
 const user = express.Router();
-const fs = require('fs');
-const mariadb = require('mariadb');
-//db connection config
-const dbConfig = JSON.parse(fs.readFileSync('db.key', 'utf8'));
-const pool = mariadb.createPool({
-    host: dbConfig.host,
-    user: dbConfig.user,
-    password: dbConfig.password,
-    connectionLimit: dbConfig.connectionLimit,
-    database: dbConfig.database
-});
+//Temp storage for images
+import fs from 'fs';
+import multer from 'multer';
+import path from 'path';
+const Userstorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'temp/')
+    },
+    filename: function (req, file, cb) {
+        cb(null, path.parse(file.originalname).name + '-' + Date.now() + '.webp')
+    }
+})
 //Endpoints
 user.get('/getUserInfo', async (req, res) => {
-    const { userID } = req.query;
+    const userID = req.headers.userid;
     if (userID) {
         let conn;
         try {
-            if (userID === req.tokenData.userID) {
-                conn = await pool.getConnection();
-                let row = await conn.query('select name, lastname, email from users where userID = ?;', [userID]);
-                let avatar = await conn.query('select fileName from userImageDetails where userID = ? and fileName not like "%auth%";', [userID]);
-                let auth = await conn.query('select fileName from userImageDetails where userID = ? and fileName like "%auth%";', [userID]);
-                row[0].avatar = avatar.length === 0 ? '' : avatar[0].fileName;
-                row[0].auth = auth.length === 0 ? '' : auth[0].fileName;
-                if (row.length === 0) {
-                    return res.status(404).json({ code: 404, message: 'User not found' });
-                } else {
-                    return res.status(200).json({ code: 200, message: row[0] });
-                }
-            }
+            conn = await pool.getConnection();
+            var user = await conn.query('SELECT userID FROM users WHERE userKey = ?;', [req.tokenData.userKey]);
+            if (userID === user[0].userID) {
+                var row = await conn.query('SELECT name, lastname, email FROM users WHERE userID = ?;', [userID]);
+                var avatar = await conn.query('SELECT fileName FROM userImageDetails WHERE userID = ? AND fileName NOT LIKE "%auth%";', [userID]);
+                var auth = await conn.query('SELECT fileName FROM userImageDetails WHERE userID = ? AND fileName LIKE "%auth%";', [userID]);
+                row[0].avatar = avatar.length === 0 ? '' : 'some link for ' + avatar[0].fileName;
+                row[0].auth = auth.length === 0 ? '' : 'some link for ' + auth[0].fileName;
+                return res.status(200).json({ info: row[0] });
+            } else return res.status(401).json({ message: 'Invalid credentials' });
         } catch (error) {
-            return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
+            return res.status(500).json({ message: 'Internal server error: ' + error });
         } finally {
-            if (conn) conn.release();
+            conn.end();
         }
-    } else return res.status(400).json({ code: 400, message: 'Incomplete data' });
+    } else return res.status(400).json({ message: 'Incomplete data' });
+});
+user.post('/updateUser', async (req, res) => {
+    const { name, lastname, email } = req.body;
+    if (name && lastname && email) {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            var user = await conn.query('SELECT email FROM users WHERE userKey = ?;', [req.tokenData.userKey]);
+            if (email === user[0].email) {
+                await conn.query('UPDATE users SET name = ?, lastname = ? WHERE email = ?;', [name, lastname, email]);
+                return res.status(200).json({ message: 'User updated' });
+            } else return res.status(401).json({ message: 'Invalid credentials' });
+        } catch (error) {
+            return res.status(500).json({ message: 'Internal server error: ' + error });
+        } finally {
+            conn.end();
+        }
+    } else return res.status(400).json({ message: 'Incomplete data' });
 });
 user.post('/updatePass', async (req, res) => {
     const { email, oldPassword, newPassword} = req.body;
@@ -43,77 +61,66 @@ user.post('/updatePass', async (req, res) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            let row = await conn.query('select userID from users where email = ? and password = ?;', [email, oldPassword]);
-            if (row.length === 0 || row[0].userID !== req.tokenData.userID) {
-                return res.status(401).json({ code: 401, message: 'Invalid credentials' });
-            } else {  
-                await conn.query('update users set password = ? where email = ? and password = ?;', [newPassword, email, oldPassword]);
-                return res.status(200).json({ code: 200, message: 'Password updated' });
-            } 
+            var oldHash = await conn.query('SELECT password FROM users WHERE email = ?;', [email]);
+            if (bcrypt.compareSync(oldPassword, oldHash[0].password)) {
+                var newHash = await bcrypt.hash(newPassword, 12);
+                await conn.query('UPDATE users SET password = ? WHERE email = ?;', [newHash, email]);
+                return res.status(200).json({ message: 'Password updated' });
+            } else return res.status(401).json({ message: 'Invalid credentials' });
         } catch (error) {
-            return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
+            return res.status(500).json({ message: 'Internal server error: ' + error });
         } finally {
-            if (conn) conn.release();
+            conn.end();
         }
-    } else return res.status(400).json({ code: 400, message: 'Incomplete data' });
+    } else return res.status(400).json({ message: 'Incomplete data' });
 });
-user.post('/registerUserPicture', async (req, res) => {
-    const { userID, fileName } = req.body;
-    if (userID && fileName) {
+user.post('/updateAvatar', multer({ storage: Userstorage }).single('avatar'), async (req, res) => {
+    const { email } = req.body;
+    if (email && req.file) {
         let conn;
         try {
             conn = await pool.getConnection();
-            let row = await conn.query('select userID from users where userID = ?;', [userID]);
-            console.log(userID, req.tokenData.userID);
-            if (row.length === 0 || row[0].userID !== req.tokenData.userID) {
-                return res.status(401).json({ code: 401, message: 'Invalid credentials' });
-            } else {  
-                let row = await conn.query('select fileName from userImageDetails where userID = ? and fileName not like "%auth%";', [userID]);
-                if (row.length === 0) {
-                    await conn.query('insert into userImageDetails values (?,?)', [userID, fileName]);
-                    return res.status(200).json({ code: 200, message: 'Picture registered' });
-                } else {
-                    fs.unlink('users/' + row[0].fileName, (err) => {
-                        if (err) return res.status(500).json({ code: 500, message: 'Internal server error: ' + err });
-                    });
-                    await conn.query('update userImageDetails set fileName = ? where userID = ? and fileName = ?;', [fileName, userID, row[0].fileName]);
-                    return res.status(200).json({ code: 200, message: 'Picture updated' });
+            var user = await conn.query('SELECT email, userID FROM users WHERE userKey = ?;', [req.tokenData.userKey]);
+            if (email === user[0].email) {
+                var fileName = req.file.filename;
+                var oldAvatar = await conn.query('SELECT fileName FROM userImageDetails WHERE userID = ? AND fileName NOT LIKE "%auth%";', [user[0].userID]);
+                await conn.query('INSERT INTO userImageDetails (userID, fileName) VALUES (?, ?);', [user[0].userID, fileName]);
+                if (oldAvatar.length !== 0) {
+                    fs.unlinkSync('temp/' + oldAvatar[0].fileName);
+                    await conn.query('DELETE FROM userImageDetails WHERE userID = ? AND fileName = ?;', [user[0].userID, oldAvatar[0].fileName]);
                 }
-            } 
+                return res.status(200).json({ message: 'Avatar updated' });
+            } else return res.status(401).json({ message: 'Invalid credentials' });
         } catch (error) {
-            return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
+            fs.unlinkSync(req.file.path);
+            return res.status(500).json({ message: 'Internal server error: ' + error });
         } finally {
-            if (conn) conn.release();
+            conn.end();
         }
-    } else return res.status(400).json({ code: 400, message: 'Incomplete data' });
+    } else return res.status(400).json({ message: 'Incomplete data' });
 });
-user.post('/resgisterAuthPicture', async (req, res) => {
-    const { userID, fileName } = req.body;
-    if (userID && fileName) {
+user.post('/updateAuth', multer({ storage: Userstorage }).single('auth'), async (req, res) => {
+    const { email } = req.body;
+    if (email && req.file) {
         let conn;
         try {
             conn = await pool.getConnection();
-            let row = await conn.query('select userID from users where userID = ?;', [userID]);
-            if (row.length === 0 || row[0].userID !== req.tokenData.userID) {
-                return res.status(401).json({ code: 401, message: 'Invalid credentials' });
-            } else {  
-                let row = await conn.query('select fileName from userImageDetails where userID = ? and fileName like "%auth%";', [userID]);
-                if (row.length === 0) {
-                    await conn.query('insert into userImageDetails values (?,?)', [userID, fileName]);
-                    return res.status(200).json({ code: 200, message: 'Picture registered' });
-                } else {
-                    fs.unlink('users/' + row[0].fileName, (err) => {
-                        if (err) return res.status(500).json({ code: 500, message: 'Internal server error: ' + err });
-                    });
-                    await conn.query('update userImageDetails set fileName = ? where userID = ? and fileName = ?;', [fileName, userID, row[0].fileName]);
-                    return res.status(200).json({ code: 200, message: 'Picture updated' });
+            var user = await conn.query('SELECT email, userID FROM users WHERE userKey = ?;', [req.tokenData.userKey]);
+            if (email === user[0].email) {
+                var fileName = req.file.filename;
+                var oldAuth = await conn.query('SELECT fileName FROM userImageDetails WHERE userID = ? AND fileName LIKE "%auth%";', [user[0].userID]);
+                await conn.query('INSERT INTO userImageDetails (userID, fileName) VALUES (?, ?);', [user[0].userID, fileName]);
+                if (oldAuth.length !== 0) {
+                    fs.unlinkSync('temp/' + oldAuth[0].fileName);
+                    await conn.query('DELETE FROM userImageDetails WHERE userID = ? AND fileName = ?;', [user[0].userID, oldAuth[0].fileName]);
                 }
-            } 
+                return res.status(200).json({ message: 'Auth updated' });
+            } else return res.status(401).json({ message: 'Invalid credentials' });
         } catch (error) {
-            return res.status(500).json({ code: 500, message: 'Internal server error: ' + error });
+            return res.status(500).json({ message: 'Internal server error: ' + error });
         } finally {
-            if (conn) conn.release();
+            conn.end();
         }
-    } else return res.status(400).json({ code: 400, message: 'Incomplete data' });
+    } else return res.status(400).json({ message: 'Incomplete data' });
 });
-module.exports = user;
+export default user;

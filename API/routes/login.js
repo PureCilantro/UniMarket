@@ -66,7 +66,7 @@ login.get('/getToken', async (req, res) => {
                 const token = jwt.sign({
                     userKey: userKey
                 }, process.env.SECRET_TOKEN, {
-                    expiresIn: "1h"
+                    expiresIn: "4h"
                 });
                 return res.status(200).json({ token: token });
             }

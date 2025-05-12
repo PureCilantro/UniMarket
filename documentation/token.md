@@ -8,8 +8,6 @@ With a valid `userKey` return a token to consume the api
 
 **Auth required** : No
 
-**Permissions required** : None
-
 **Data input** : `headers : { userKey }`
 
 ## Success Response
