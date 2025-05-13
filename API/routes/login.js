@@ -29,7 +29,7 @@ login.post('/register', async (req, res) => {
         } catch (error) {
             res.status(500).json({ message: 'Internal server error: ' + error });
         } finally {
-            conn.end();
+            if (conn) conn.end();
         }
     } else return res.status(400).json({ message: 'Incomplete data' });
 });
@@ -49,7 +49,7 @@ login.post('/', async (req, res) => {
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error: ' + error });
         } finally {
-            conn.end();
+            if (conn) conn.end();
         }        
     } else return res.status(400).json({ message: 'Incomplete data' });
 });
@@ -73,7 +73,7 @@ login.get('/getToken', async (req, res) => {
         } catch (error) {
             res.status(500).json({ message: 'Internal server error: ' + error });
         } finally {
-            conn.end();
+            if (conn) conn.end();
         }        
     } else return res.status(400).json({ message: 'Incomplete data' });
 });

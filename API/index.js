@@ -7,7 +7,7 @@ dotenv.config();
 //Routes
 import login from './routes/login.js';
 import user from './routes/user.js';
-
+import content from './routes/content.js';
 
 
 //Middleware
@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 //Endpoints
 app.use('/login', login);
 app.use('/user', auth, user);
-
+app.use('/content', auth, content);
 
 
 

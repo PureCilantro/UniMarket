@@ -49,12 +49,6 @@ A Token can be acquired from the getToken endpoint above and **one is needed per
 }
 ```
 
-<br>
-
-### User information and edition `user/`
-
-#### Error Responses
-
 **Condition** : The information requested doesn't match the token owner.
 
 **Code** : `401 Unauthorized`
@@ -67,15 +61,28 @@ A Token can be acquired from the getToken endpoint above and **one is needed per
 
 <br>
 
+### User information and edition `user/`
+
+
+
 * [Get user info](userInfo.md) : [`GET user/getUserInfo`](../API/routes/user.js#L18)
 * [Update user info](updateUser.md) : [`POST user/updateUser`](../API/routes/user.js#L40)
 * [Update user password](password.md) : [`POST user/updatePass`](../API/routes/user.js#L58)
 * [Update user avatar](avatar.md) : [`POST user/updateAvatar`](../API/routes/user.js#L77)
 * [Update user authentication image](auth.md) : [`POST user/updateAuth`](../API/routes/user.js#L102)
 
-### Content access
+### Content access `content/`
 
-### Post creation
+* [Get categories](categories.md) : [`GET content/getCategories`](../API/routes/content.js#L17)
+* [Get post IDs](postIDs.md) : [`GET content/getPostIDs`](../API/routes/content.js#L29)
+* [Get post info](postInfo.md) : [`GET content/getPostInfo`](../API/routes/content.js#L53)
+* [Get user posts](userPosts.md) : [`GET content/getUserPosts`](../API/routes/content.js#L76)
 
-### Post edition
+### Post management `create/`
 
+* [Post a post](createPost.md) : [`POST create/postPost`](../API/routes/create.js#L17)
+* [Edit a post](editPost.md) : [`POST create/editPost`](../API/routes/create.js#L48)
+* [Toggle post status](togglePost.md) : [`POST create/togglePost`](../API/routes/create.js#L69)
+* [Delete a post](deletePost.md) : [`POST create/deletePost`](../API/routes/create.js#L94)
+* [Add a post image](addPostimage.md) : [`POST create/addPostimage`](../API/routes/create.js#L127)
+* [Delete a post image](deletePostimage.md) : [`POST create/deletePostimage`](../API/routes/create.js#L153)
