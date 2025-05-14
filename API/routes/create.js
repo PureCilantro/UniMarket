@@ -1,5 +1,6 @@
 import express from 'express';
 import pool from '../config/DBmanager.js';
+import { generatePresignedUrl, uploadFile, deleteFile } from '../middleware/s3manager.js';
 const create = express.Router();
 //temp storage for images
 import fs from 'fs';
@@ -29,7 +30,8 @@ create.post('/postPost', multer({ storage }).array('files', 4) , async (req, res
             }
             var postID = row.insertId;
             for (const file of req.files) {
-                //upload to bucket
+                await uploadFile(file.filename);
+                fs.unlinkSync(file.path);
                 await conn.query('INSERT INTO postImageDetails (postID, fileName) VALUES (?, ?);', [postID, file.filename]);
             }
             await conn.commit();
@@ -37,7 +39,7 @@ create.post('/postPost', multer({ storage }).array('files', 4) , async (req, res
         } catch (error) {
             await conn.rollback();
             for (const file of req.files) {
-                fs.unlinkSync('temp/' + file.filename);
+                fs.unlinkSync(file.path);
             }
             res.status(500).json({ message: 'Internal server error: ' + error });
         } finally {
@@ -104,9 +106,8 @@ create.post('/deletePost', async (req, res) => {
             } else {
                 var images = await conn.query('SELECT fileName FROM postImageDetails WHERE postID = ?;', [postID]);
                 if (images.length > 0) {
-                    //delete from bucket
                     for (let i = 0; i < images.length; i++) {
-                        fs.unlinkSync('temp/' + images[i].fileName)
+                        await deleteFile(images[i].fileName);
                     }
                 }
                 conn.beginTransaction();
@@ -137,7 +138,7 @@ create.post('/addPostImage', multer({ storage }).single('file'), async (req, res
             } else {
                 await conn.beginTransaction();
                 await conn.query('INSERT INTO postImageDetails (postID, fileName) VALUES (?, ?);', [postID, req.file.filename]);
-                //upload to bucket
+                await uploadFile(req.file.path);
                 await conn.commit();
                 return res.status(200).json({ message: 'Post image added' });
             }
@@ -165,7 +166,7 @@ create.post('/deletePostImage', async (req, res) => {
                 if (image.length === 0) {
                     return res.status(404).json({ message: 'Image not found' });
                 } else {
-                    //delete from bucket
+                    deleteFile(fileName);
                     fs.unlinkSync('temp/' + fileName);
                     await conn.query('DELETE FROM postImageDetails WHERE postID = ? AND fileName = ?;', [postID, fileName]);
                     return res.status(200).json({ message: 'Post image deleted' });

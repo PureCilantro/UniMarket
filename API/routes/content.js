@@ -1,5 +1,6 @@
 import express from 'express';
 import pool from '../config/DBmanager.js';
+import { generatePresignedUrl } from '../middleware/s3manager.js';
 const content = express.Router();
 //Endpoints
 content.get('/getCategories', async (req, res) => {
@@ -50,6 +51,11 @@ content.get('/getPostInfo', async (req, res) => {
             } else {
                 let images = await conn.query('SELECT fileName FROM postImageDetails WHERE postID = ?;', [postID]);
                 let categories = await conn.query('SELECT categoryID id FROM postCategoryDetails WHERE postID = ?;', [postID]);
+                for (const image of images) {
+                    await generatePresignedUrl(image.fileName).then((url) => {
+                        image.fileName = url;
+                    });
+                }
                 rows[0].images = images.length === 0 ? [] : images.map(image => image.fileName);
                 rows[0].categories = categories.length === 0 ? [] : categories.map(category => ({id: category.id }));
                 return res.status(200).json(rows[0]);

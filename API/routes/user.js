@@ -1,6 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import pool from '../config/DBmanager.js';
+import { generatePresignedUrl, uploadFile, deleteFile } from '../middleware/s3manager.js';
 const user = express.Router();
 //Temp storage for images
 import fs from 'fs';
@@ -26,8 +27,8 @@ user.get('/getUserInfo', async (req, res) => {
                 var row = await conn.query('SELECT name, lastname, email FROM users WHERE userID = ?;', [userID]);
                 var avatar = await conn.query('SELECT fileName FROM userImageDetails WHERE userID = ? AND fileName NOT LIKE "%auth%";', [userID]);
                 var auth = await conn.query('SELECT fileName FROM userImageDetails WHERE userID = ? AND fileName LIKE "%auth%";', [userID]);
-                row[0].avatar = avatar.length === 0 ? '' : 'some link for ' + avatar[0].fileName;
-                row[0].auth = auth.length === 0 ? '' : 'some link for ' + auth[0].fileName;
+                row[0].avatar = avatar.length === 0 ? '' : await generatePresignedUrl(avatar[0].fileName);
+                row[0].auth = auth.length === 0 ? '' : await generatePresignedUrl(auth[0].fileName);
                 return res.status(200).json({ info: row[0] });
             } else return res.status(401).json({ message: 'Invalid credentials' });
         } catch (error) {
@@ -85,9 +86,11 @@ user.post('/updateAvatar', multer({ storage }).single('avatar'), async (req, res
                 var fileName = req.file.filename;
                 var oldAvatar = await conn.query('SELECT fileName FROM userImageDetails WHERE userID = ? AND fileName NOT LIKE "%auth%";', [user[0].userID]);
                 await conn.beginTransaction();
+                await uploadFile(fileName);
+                fs.unlinkSync(req.file.path);
                 await conn.query('INSERT INTO userImageDetails (userID, fileName) VALUES (?, ?);', [user[0].userID, fileName]);
                 if (oldAvatar.length !== 0) {
-                    fs.unlinkSync('temp/' + oldAvatar[0].fileName);
+                    await deleteFile(oldAvatar[0].fileName);
                     await conn.query('DELETE FROM userImageDetails WHERE userID = ? AND fileName = ?;', [user[0].userID, oldAvatar[0].fileName]);
                 }
                 await conn.commit();
@@ -113,9 +116,11 @@ user.post('/updateAuth', multer({ storage }).single('auth'), async (req, res) =>
                 var fileName = req.file.filename;
                 var oldAuth = await conn.query('SELECT fileName FROM userImageDetails WHERE userID = ? AND fileName LIKE "%auth%";', [user[0].userID]);
                 await conn.beginTransaction();
+                await uploadFile(fileName);
+                fs.unlinkSync(req.file.path);
                 await conn.query('INSERT INTO userImageDetails (userID, fileName) VALUES (?, ?);', [user[0].userID, fileName]);
                 if (oldAuth.length !== 0) {
-                    fs.unlinkSync('temp/' + oldAuth[0].fileName);
+                    await deleteFile(oldAuth[0].fileName);
                     await conn.query('DELETE FROM userImageDetails WHERE userID = ? AND fileName = ?;', [user[0].userID, oldAuth[0].fileName]);
                 }
                 await conn.commit();
