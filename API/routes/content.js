@@ -57,7 +57,7 @@ content.get('/getPostInfo', async (req, res) => {
                     });
                 }
                 rows[0].images = images.length === 0 ? [] : images.map(image => image.fileName);
-                rows[0].categories = categories.length === 0 ? [] : categories.map(category => ({id: category.id }));
+                rows[0].categories = categories.length === 0 ? [] : categories.map(category => category.id);
                 return res.status(200).json(rows[0]);
             }
         } catch (error) {
@@ -77,6 +77,11 @@ content.get('/getUserPosts', async (req, res) => {
             for (let i = 0; i < rows.length; i++) {
                 let images = await conn.query('SELECT fileName FROM postImageDetails WHERE postID = ?;', [rows[i].postID]);
                 let categories = await conn.query('SELECT categoryID id FROM postCategoryDetails WHERE postID = ?;', [rows[i].postID]);
+                for (const image of images) {
+                    await generatePresignedUrl(image.fileName).then((url) => {
+                        image.fileName = url;
+                    });
+                }
                 rows[i].images = images.length === 0 ? [] : images.map(image => image.fileName);
                 rows[i].categories = categories.length === 0 ? [] : categories.map(category => ({id: category.id }));
             }

@@ -13,17 +13,30 @@ import { ScreenWrapper} from './ScreenWrapper';
 import { api } from '../config/api';
 
 
-export default function CreatePostScreen({ navigation }) {
+export default function EditPost({ navigation, route }) {
     //Variables de estado
+    const {postID, pTitle, pDescription, pPrice, pQuantity, pAvailableTo, pAvailableFrom} = route.params;
     const [loading, setLoading] = useState(false);
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [quantity, setQuantity] = useState('');
-    const [price, setPrice] = useState('');
-    const [availableFrom, setAvailableFrom] = useState(new Date());
+    const [title, setTitle] = useState(pTitle);
+    const [description, setDescription] = useState(pDescription);
+    const [quantity, setQuantity] = useState(pQuantity.toString());
+    const [price, setPrice] = useState(pPrice.toString());
+    const [availableFrom, setAvailableFrom] = useState(() => {
+        const from = pAvailableFrom.toString();
+        const hours = parseInt(from.substring(0, 2), 10);
+        const minutes = parseInt(from.substring(2, 4), 10);
+        const date = new Date();
+        date.setHours(hours);
+        date.setMinutes(minutes);
+        return date;
+    });
     const [availableTo, setAvailableTo] = useState(() => {
-        let date = new Date();
-        date.setHours(date.getHours() + 2);
+        const to = pAvailableTo.toString();
+        const hours = parseInt(to.substring(0, 2), 10);
+        const minutes = parseInt(to.substring(2, 4), 10);
+        const date = new Date();
+        date.setHours(hours);
+        date.setMinutes(minutes);
         return date;
     });
     const [showFromPicker, setShowFromPicker] = useState(false);
@@ -76,11 +89,12 @@ export default function CreatePostScreen({ navigation }) {
                             price: price,
                             availableFrom: dbFrom,
                             availableTo: dbTo,
-                            userID: userID
+                            userID: userID,
+                            postID: postID
                         }
                     };
-                    const response = await axios.post(api + 'content/postPost', config.data, { headers: config.headers });
-                    if (response.status === 201) {
+                    const response = await axios.post(api + 'content/editPost', config.data, { headers: config.headers });
+                    if (response.status === 200) {
                         setPostSuccessDialog(true);
                     } else if (response.status === 500) {
                         setPostErrorDialog(true);
@@ -102,7 +116,7 @@ export default function CreatePostScreen({ navigation }) {
                     padding={10}
                     onPress={() => { navigation.goBack() }}
                 />                
-                <Text style={[styles.title, { color: activeColors.tertiary }]}>Crear Publicación</Text>
+                <Text style={[styles.title, { color: activeColors.tertiary }]}>Editar Publicación</Text>
             </View>
             <View style={styles.container}>
                 <TextInput
@@ -237,7 +251,7 @@ export default function CreatePostScreen({ navigation }) {
                     disabled={loading}
                     style={[styles.button,{backgroundColor: activeColors.tertiary}]}
                     >
-                    {loading ? <ActivityIndicator size={'small'} color={activeColors.onTertiary} /> : <Text style={[styles.text, {color: activeColors.onTertiary}]}>Crear</Text>}
+                    {loading ? <ActivityIndicator size={'small'} color={activeColors.onTertiary} /> : <Text style={[styles.text, {color: activeColors.onTertiary}]}>Editar</Text>}
                 </Button>
                 <Portal>
                     <Dialog visible={timeErrorDialog} onDismiss={() => setTimeErrorDialog(false)}>
@@ -261,7 +275,7 @@ export default function CreatePostScreen({ navigation }) {
                     <Dialog visible={postSuccessDialog} onDismiss={() => setPostSuccessDialog(false)}>
                         <Dialog.Title>Éxito</Dialog.Title>
                         <Dialog.Content>
-                            <Text>La publicación se creó correctamente</Text>
+                            <Text>La publicación se editó correctamente</Text>
                         </Dialog.Content>
                         <Dialog.Actions>
                             <Button onPress={goBack}>Ok</Button>

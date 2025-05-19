@@ -13,8 +13,8 @@ login.post('/register', async (req, res) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            let rows = await conn.query('SELECT email FROM users WHERE email = ?;', [email]);
-            if (rows.length > 0) {
+            let user = await conn.query('SELECT email FROM users WHERE email = ?;', [email]);
+            if (user.length > 0) {
                 return res.status(400).json({ message: 'User already exists' });
             } else {
                 var encString = name + lastname + email + Date.now()
@@ -41,8 +41,9 @@ login.post('/', async (req, res) => {
             conn = await pool.getConnection();
             let hash = await conn.query('SELECT password FROM users WHERE email = ?;', [email]);
             if ((hash.length !== 0) && (await bcrypt.compare(password, hash[0].password))) {
-                let row = await conn.query('SELECT userKey FROM users WHERE email = ?;', [email]);
-                return res.status(200).json({ userKey: row[0].userKey });
+                let user = await conn.query('SELECT userKey, userID FROM users WHERE email = ?;', [email]);
+                let auth = await conn.query('SELECT fileName FROM userImageDetails WHERE userID = ? AND fileName LIKE "%auth%";', [user[0].userID]);
+                return res.status(200).json({ userKey: user[0].userKey, auth: auth.length === 0 ? '0' : '1'});
             } else {  
                 return res.status(401).json({ message: 'Invalid credentials' });
             }

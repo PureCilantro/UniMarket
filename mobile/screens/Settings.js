@@ -11,7 +11,7 @@ import { ThemeContext } from '../contexts/ThemeContext';
 import { ScreenWrapper} from './ScreenWrapper';
 import { api } from '../config/api';
 
-export default function SettingsScreen({ navigation }) {
+export default function Settings({ navigation }) {
     //Variables de estado
     const [loading, setLoading] = useState(false);
     const [logLoading, setLogLoading] = useState(false);
