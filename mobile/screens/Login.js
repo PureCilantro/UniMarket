@@ -36,6 +36,7 @@ export default function Login({ navigation }) {
             try {
                 const response = await axios.post(api + 'login', { email: email.toLowerCase(), password });
                 if (response.status === 200) {
+                    await AsyncStorage.setItem('userID', response.data.userID);
                     await AsyncStorage.setItem('userKey', response.data.userKey);
                     navigation.replace('HomeTabs');
                 }

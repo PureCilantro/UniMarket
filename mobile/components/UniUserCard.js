@@ -47,6 +47,7 @@ export default function UniUserCard({
                     </View>
                 </View>
             </Card.Content>
+            <Card.Cover source={{ uri: item.images[0] }} style={styles.image} />
             <Card.Actions>
                 <Button
                     mode='elevated'
@@ -70,9 +71,18 @@ export default function UniUserCard({
 const styles = StyleSheet.create({
     card: {
         margin: 10,
+        height: 370,
     },
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between'
+    },
+    image: {
+        width: '70%',
+        height: '50%',
+        marginTop: 10,
+        alignSelf: 'center',
+        borderBottomLeftRadius: 12,
+        borderBottomRightRadius: 12,
     }
 });

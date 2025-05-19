@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Text, Card, FAB, Switch, Button, ActivityIndicator, useTheme } from 'react-native-paper';
+import { useState, useCallback } from 'react';
+import { FAB, useTheme, Text, ActivityIndicator } from 'react-native-paper';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from '@expo/vector-icons/Feather';
 import axios from 'axios';
 
@@ -19,12 +19,15 @@ export default function UserPosts({ navigation }) {
 
     const fetchPosts = async () => {
         const token = await getToken();
+        const userID = await AsyncStorage.getItem('userID');
         try {
             const config = { 
-                headers: { authorization: `Bearer ${token}` },
-                params: { userID: userID }
+                headers: { 
+                    authorization: `Bearer ${token}`,
+                    userid: userID
+                }
             };
-            const { data } = await axios.get(api + 'content/getUserPosts', { headers: config.headers, params: config.params });
+            const { data } = await axios.get(api + 'content/getUserPosts', { headers: config.headers });
             setPosts(data);
         } catch (error) {
             console.error(error);
@@ -40,11 +43,17 @@ export default function UserPosts({ navigation }) {
             };
             await axios.post(api + 'create/togglePost', {postID: postID}, { headers: config.headers });
             setSwitchToggle(false);
-            fetchPosts();
+            await fetchPosts();
         } catch (error) {
             console.error(error);
         }
     }
+
+    const renderEnd = () => (
+        <View style={styles.endContainer}>
+            <Text style={{ color: colors.outline }}>No hay más publicaciones</Text>
+        </View>
+    );
 
     useFocusEffect(
         useCallback(() => {
@@ -107,13 +116,18 @@ export default function UserPosts({ navigation }) {
                     data={posts}
                     renderItem={renderItem}
                     keyExtractor={item => item.postID}
+                    ListFooterComponent={() => (
+                        <>
+                            {renderEnd()}
+                        </>
+                    )}
                     refreshControl={
                         <RefreshControl
                             refreshing={refresh}
-                            onRefresh={() => {
+                            onRefresh={async () => {
                                 setRefresh(true);
                                 setPosts([]);
-                                fetchPosts();
+                                await fetchPosts();
                                 setRefresh(false);
                             }}
                         />
@@ -122,10 +136,10 @@ export default function UserPosts({ navigation }) {
             </View>
             <FAB
                 label='Crear publicación'
-                style={[styles.fabStyle, { backgroundColor: colors.tertiary || colors.primary }]}
+                style={[styles.fabStyle, { backgroundColor: colors.tertiaryContainer || colors.primary }]}
                 icon="plus"
                 color={colors.onTertiary || colors.onPrimary}
-                onPress={() => navigation.navigate('CreatePostScreen')}
+                onPress={() => navigation.navigate('CreatePost')}
             />
         </View>
     );
@@ -134,7 +148,8 @@ export default function UserPosts({ navigation }) {
 const styles = StyleSheet.create({
     iconContainer: {
         flexDirection: 'row', 
-        justifyContent: 'flex-end'
+        justifyContent: 'flex-end',
+        paddingHorizontal: 10
     },
     container: {
         flex: 1,
@@ -151,7 +166,7 @@ const styles = StyleSheet.create({
     },
     fabStyle: {
         bottom: 20,
-        right: 20,
+        left: 20,
         position: 'absolute',
     },
 });

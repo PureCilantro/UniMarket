@@ -19,7 +19,6 @@ export default function UniCard({ item, onPress }) {
         <Card style={styles.card} onPress={onPress}>
             <Card.Title title={item.title} />
             <Card.Content>
-                <Text>{item.description}</Text>
                 <View style={styles.row}>
                     <View style={styles.row}>
                         <Text style={{ color: colors.outline }}>Desde: </Text>
@@ -57,7 +56,7 @@ const styles = StyleSheet.create({
     },
     image: {
         width: '100%',
-        height: '71%',
+        height: '75%',
         marginTop: 10,
         borderBottomLeftRadius: 12,
         borderBottomRightRadius: 12,

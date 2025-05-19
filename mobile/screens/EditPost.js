@@ -1,21 +1,18 @@
-import React, { useState, useContext, useEffect } from 'react';
+import { useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Text, Button, HelperText, Portal, Dialog, FAB } from 'react-native-paper';
+import { Text, Button, HelperText, Portal, Dialog, FAB, useTheme, TextInput } from 'react-native-paper';
 import axios from 'axios';
 import Icon from '@expo/vector-icons/Feather';
-import { TextInput } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { colors } from '../theme/colors';
-import { ThemeContext } from '../contexts/ThemeContext';
-import { ScreenWrapper} from './ScreenWrapper';
 import { api } from '../config/api';
-
+import UniText from '../components/UniText'; // Import UniText
 
 export default function EditPost({ navigation, route }) {
-    //Variables de estado
-    const {postID, pTitle, pDescription, pPrice, pQuantity, pAvailableTo, pAvailableFrom} = route.params;
+    const tittleMaxLength = 50;
+    const descriptionMaxLength = 100;
+    // State variables
+    const { postID, pTitle, pDescription, pPrice, pQuantity, pAvailableTo, pAvailableFrom } = route.params;
     const [loading, setLoading] = useState(false);
     const [title, setTitle] = useState(pTitle);
     const [description, setDescription] = useState(pDescription);
@@ -41,9 +38,7 @@ export default function EditPost({ navigation, route }) {
     });
     const [showFromPicker, setShowFromPicker] = useState(false);
     const [showToPicker, setShowToPicker] = useState(false);
-    const tittleMaxLength = 50;
-    const descriptionMaxLength = 100;
-    //Variables de error
+    // Error variables
     const [titleError, setTitleError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
     const [quantityError, setQuantityError] = useState(false);
@@ -51,9 +46,9 @@ export default function EditPost({ navigation, route }) {
     const [timeErrorDialog, setTimeErrorDialog] = useState(false);
     const [postErrorDialog, setPostErrorDialog] = useState(false);
     const [postSuccessDialog, setPostSuccessDialog] = useState(false);
-    //Contexto de tema
-    const {theme, toggleTheme} = useContext(ThemeContext);
-    let activeColors = colors[theme.mode];
+
+    // Use new theme
+    const { colors } = useTheme();
 
     const formatDate = (date) => {
         return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -77,7 +72,6 @@ export default function EditPost({ navigation, route }) {
         if (dbFrom < dbTo) {
             if (title && description && quantity && price) {
                 setLoading(true);
-                const userID = await AsyncStorage.getItem('userID');
                 try {
                     const token = await axios.post(api + 'login/getToken', { userID: userID });
                     const config = { 
@@ -102,36 +96,32 @@ export default function EditPost({ navigation, route }) {
                 } catch (error) {
                     console.error(error);
                 }
+                setLoading(false);
             }
         } else setTimeErrorDialog(true);
     };
 
     return (
-        <ScreenWrapper>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
             <View style={styles.rowContainer}>
                 <Icon
                     name={'arrow-left'}
                     size={24}
-                    color={activeColors.tertiary}
+                    color={colors.tertiary || colors.primary}
                     padding={10}
                     onPress={() => { navigation.goBack() }}
                 />                
-                <Text style={[styles.title, { color: activeColors.tertiary }]}>Editar Publicación</Text>
+                <Text style={[styles.title, { color: colors.tertiary || colors.primary }]}>Editar Publicación</Text>
             </View>
             <View style={styles.container}>
-                <TextInput
+                <UniText
                     label="Título"
                     value={title}
                     placeholder="Ingresa un título"
-                    placeholderTextColor={activeColors.outline}
                     onChangeText={(titulo) => {
                         setTitle(titulo)
                         setTitleError(false)
                     }}
-                    style={styles.input}
-                    activeUnderlineColor={activeColors.tertiary}
-                    textColor={activeColors.onBackground}
-                    underlineColor={activeColors.onBackground}
                     maxLength={tittleMaxLength}
                 />
                 <View style={styles.helperRow}>
@@ -142,21 +132,16 @@ export default function EditPost({ navigation, route }) {
                         {title.length}/{tittleMaxLength}
                     </HelperText>
                 </View>
-                <TextInput
+                <UniText
                     label="Descripción"
                     value={description}
                     placeholder="Ingresa una descripción"
-                    placeholderTextColor={activeColors.outline}
                     onChangeText={(desc) => {
                         setDescription(desc)
                         setDescriptionError(false)
                     }}
-                    style={styles.input}
-                    activeUnderlineColor={activeColors.tertiary}
-                    textColor={activeColors.onBackground}
                     multiline={true}
                     maxLength={descriptionMaxLength}
-                    underlineColor={activeColors.onBackground}
                 />
                 <View style={styles.helperRow}>
                     <HelperText type='error' padding='none' visible={descriptionError}>
@@ -166,38 +151,28 @@ export default function EditPost({ navigation, route }) {
                         {description.length}/{descriptionMaxLength}
                     </HelperText>
                 </View>
-                <TextInput
+                <UniText
                     label="Cantidad"
                     value={quantity}
                     placeholder="Ingresa la cantidad disponible"
-                    placeholderTextColor={activeColors.outline}
                     onChangeText={(cant) => {
                         setQuantity(cant)
                         setQuantityError(false)
                     }}
                     keyboardType="numeric"
-                    style={styles.input}
-                    activeUnderlineColor={activeColors.tertiary}
-                    textColor={activeColors.onBackground}
-                    underlineColor={activeColors.onBackground}
                 />
                 <HelperText type='error' padding='none' visible={quantityError}>
                     Ingresa una cantidad
                 </HelperText>
-                <TextInput
+                <UniText
                     label="Precio"
                     value={price}
                     placeholder="Ingresa el precio"
-                    placeholderTextColor={activeColors.outline}
                     onChangeText={(precio) => {
                         setPrice(precio)
                         setPriceError(false)
                     }}
                     keyboardType="numeric"
-                    style={styles.input}
-                    activeUnderlineColor={activeColors.tertiary}
-                    textColor={activeColors.onBackground}
-                    underlineColor={activeColors.onBackground}
                     left={<TextInput.Affix text="$"/>}
                 />
                 <HelperText type='error' padding='none' visible={priceError}>
@@ -206,9 +181,9 @@ export default function EditPost({ navigation, route }) {
                 <View style={styles.rowTimeContainer}>
                     <Button 
                         onPress={() => setShowFromPicker(true)} 
-                        style={[styles.timeButton,{backgroundColor:activeColors.tertiary}]}
+                        style={[styles.timeButton,{backgroundColor:colors.tertiary || colors.primary}]}
                     >
-                        <Text style={[styles.text, {color: activeColors.onTertiary}]}>{formatDate(availableFrom)}</Text>
+                        <Text style={[styles.text, {color: colors.onTertiary || colors.onPrimary}]}>{formatDate(availableFrom)}</Text>
                     </Button>
                     {showFromPicker && (
                         <DateTimePicker
@@ -224,14 +199,14 @@ export default function EditPost({ navigation, route }) {
                     <Icon
                         name={'arrow-right'}
                         size={24}
-                        color={activeColors.tertiary}
+                        color={colors.tertiary || colors.primary}
                         padding={10}
                     />
                     <Button 
                         onPress={() => setShowToPicker(true)} 
-                        style={[styles.timeButton,{backgroundColor:activeColors.tertiary}]}
+                        style={[styles.timeButton,{backgroundColor:colors.tertiary || colors.primary}]}
                     >
-                        <Text style={[styles.text, {color: activeColors.onTertiary}]}>{formatDate(availableTo)}</Text>
+                        <Text style={[styles.text, {color: colors.onTertiary || colors.onPrimary}]}>{formatDate(availableTo)}</Text>
                     </Button>
                     {showToPicker && (
                         <DateTimePicker
@@ -249,9 +224,9 @@ export default function EditPost({ navigation, route }) {
                     mode="elevated"
                     onPress={handleCreatePost}
                     disabled={loading}
-                    style={[styles.button,{backgroundColor: activeColors.tertiary}]}
+                    style={[styles.button,{backgroundColor: colors.tertiary || colors.primary}]}
                     >
-                    {loading ? <ActivityIndicator size={'small'} color={activeColors.onTertiary} /> : <Text style={[styles.text, {color: activeColors.onTertiary}]}>Editar</Text>}
+                    {loading ? <ActivityIndicator size={'small'} color={colors.onTertiary || colors.onPrimary} /> : <Text style={[styles.text, {color: colors.onTertiary || colors.onPrimary}]}>Editar</Text>}
                 </Button>
                 <Portal>
                     <Dialog visible={timeErrorDialog} onDismiss={() => setTimeErrorDialog(false)}>
@@ -283,7 +258,7 @@ export default function EditPost({ navigation, route }) {
                     </Dialog>
                 </Portal>
             </View>
-        </ScreenWrapper>
+        </View>
     );
 }
 const styles = StyleSheet.create({
@@ -320,11 +295,6 @@ const styles = StyleSheet.create({
     timeButton: {
         marginVertical: 10,
         width: '40%',
-    },
-    input: {
-        backgroundColor: 'transparent',
-        paddingHorizontal: 0,
-        fontSize: 16,
     },
     helperRow: {
         flexDirection: 'row',

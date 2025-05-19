@@ -43,7 +43,7 @@ login.post('/', async (req, res) => {
             if ((hash.length !== 0) && (await bcrypt.compare(password, hash[0].password))) {
                 let user = await conn.query('SELECT userKey, userID FROM users WHERE email = ?;', [email]);
                 let auth = await conn.query('SELECT fileName FROM userImageDetails WHERE userID = ? AND fileName LIKE "%auth%";', [user[0].userID]);
-                return res.status(200).json({ userKey: user[0].userKey, auth: auth.length === 0 ? '0' : '1'});
+                return res.status(200).json({ userKey: user[0].userKey, userID: user[0].userID, auth: auth.length === 0 ? '0' : '1'});
             } else {  
                 return res.status(401).json({ message: 'Invalid credentials' });
             }
