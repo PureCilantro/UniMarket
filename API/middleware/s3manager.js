@@ -23,7 +23,7 @@ const generatePresignedUrl = async (key) => {
         Bucket: s3Bucket,
         Key: key,
     });
-    return getSignedUrl(s3, command, { expiresIn: 30 });
+    return getSignedUrl(s3, command, { expiresIn: 3600 });
 };
 
 const uploadFile = async (fileName) => {

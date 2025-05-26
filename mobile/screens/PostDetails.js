@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity, Platform } from 'react-native';
 import { Text, useTheme, Card, Button, Chip } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,13 +11,8 @@ export default function PostDetail({ navigation, route }) {
     const { postID, title, description, price, quantity, images, available } = route.params;
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     
-    console.log(route.params);
-    
-    // Usar el tema de react-native-paper y safe area insets
     const { colors } = useTheme();
     const insets = useSafeAreaInsets();
-
-    // Función para renderizar las imágenes con scroll horizontal
     const renderImageCarousel = () => {
         if (!images || images.length === 0) {
             return (
@@ -71,7 +66,6 @@ export default function PostDetail({ navigation, route }) {
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-            {/* Header con botón de regreso */}
             <View style={[styles.header, { borderBottomColor: colors.outline }]}>
                 <TouchableOpacity 
                     onPress={() => navigation.goBack()}
@@ -103,12 +97,14 @@ export default function PostDetail({ navigation, route }) {
                             {title}
                         </Text>
                         <Chip 
-                            icon={available ? "check-circle" : "alert-circle"}
+                            icon={() => (
+                                <Icon name={available ? "check-circle" : "alert-circle"} size={16} color={colors.onTertiary} />
+                            )}
                             style={{ 
-                                backgroundColor: available ? colors.primary : colors.error,
+                                backgroundColor: available ? colors.tertiary : colors.error,
                                 marginTop: 8
                             }}
-                            textStyle={{ color: available ? colors.onPrimary : colors.onError }}
+                            textStyle={{ color: available ? colors.onTertiary : colors.onError }}
                         >
                             {available ? 'Disponible' : 'No Disponible'}
                         </Chip>
@@ -119,9 +115,9 @@ export default function PostDetail({ navigation, route }) {
                         <Card.Content>
                             <View style={styles.priceQuantityContainer}>
                                 <View style={styles.priceContainer}>
-                                    <Icon name="dollar-sign" size={20} color={colors.primary} />
-                                    <Text style={[styles.price, { color: colors.primary }]}>
-                                        {price}
+                                    <Icon name="dollar-sign" size={20} color={colors.onSurface} />
+                                    <Text style={[styles.price, { color: colors.onSurface }]}>
+                                        {Number(price).toLocaleString('es-MX')}
                                     </Text>
                                 </View>
                                 <View style={styles.quantityContainer}>
@@ -137,32 +133,12 @@ export default function PostDetail({ navigation, route }) {
                     {/* Descripción */}
                     <Card style={[styles.descriptionCard, { backgroundColor: colors.surface }]}>
                         <Card.Content>
-                            <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
+                            <Text style={[styles.sectionTitle, { color: colors.surfaceVariant }]}>
                                 Descripción
                             </Text>
                             <Text style={[styles.description, { color: colors.onSurface }]}>
                                 {description || 'No hay descripción disponible para este producto.'}
                             </Text>
-                        </Card.Content>
-                    </Card>
-
-                    {/* Información adicional */}
-                    <Card style={[styles.additionalInfoCard, { backgroundColor: colors.surface }]}>
-                        <Card.Content>
-                            <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
-                                Información Adicional
-                            </Text>
-                            <View style={styles.infoRow}>
-                                
-                            </View>
-                            <View style={styles.infoRow}>
-                                <Text style={[styles.infoLabel, { color: colors.onSurfaceVariant }]}>
-                                    Estado:
-                                </Text>
-                                <Text style={[styles.infoValue, { color: available ? colors.primary : colors.error }]}>
-                                    {available ? 'En Stock' : 'Agotado'}
-                                </Text>
-                            </View>
                         </Card.Content>
                     </Card>
                 </View>
@@ -183,8 +159,8 @@ export default function PostDetail({ navigation, route }) {
                         // Lógica para contactar vendedor
                         console.log('Contactar vendedor');
                     }}
-                    style={[styles.actionButton, { borderColor: colors.primary }]}
-                    labelStyle={{ color: colors.primary }}
+                    style={[styles.actionButton, { borderColor: colors.tertiary }]}
+                    labelStyle={{ color: colors.tertiary }}
                     icon="message-circle"
                 >
                     Contactar
@@ -195,7 +171,7 @@ export default function PostDetail({ navigation, route }) {
                         // Lógica para comprar/reservar
                         console.log('Comprar producto');
                     }}
-                    style={[styles.actionButton, { backgroundColor: available ? colors.primary : colors.surfaceVariant }]}
+                    style={[styles.actionButton, { backgroundColor: available ? colors.tertiary : colors.surfaceVariant }]}
                     labelStyle={{ color: available ? colors.onPrimary : colors.onSurfaceVariant }}
                     disabled={!available}
                     icon={available ? "shopping-cart" : "alert-circle"}
@@ -293,7 +269,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: 12,
         fontWeight: '600',
         marginBottom: 12,
     },
