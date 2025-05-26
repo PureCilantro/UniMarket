@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import { Text, Button, HelperText, Portal, Dialog, FAB, useTheme, TextInput } from 'react-native-paper';
+import { Text, Button, HelperText, Portal, Dialog, useTheme, TextInput } from 'react-native-paper';
 import axios from 'axios';
 import Icon from '@expo/vector-icons/Feather';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { api } from '../config/api';
-import UniText from '../components/UniText'; // Import UniText
+import { api, getToken } from '../config/api';
+import UniText from '../components/UniText';
 
 export default function EditPost({ navigation, route }) {
     const tittleMaxLength = 50;
@@ -47,7 +47,6 @@ export default function EditPost({ navigation, route }) {
     const [postErrorDialog, setPostErrorDialog] = useState(false);
     const [postSuccessDialog, setPostSuccessDialog] = useState(false);
 
-    // Use new theme
     const { colors } = useTheme();
 
     const formatDate = (date) => {
@@ -62,7 +61,7 @@ export default function EditPost({ navigation, route }) {
         navigation.goBack();
     };
 
-    const handleCreatePost = async () => {
+    const handleEditPost = async () => {
         title === '' ? setTitleError(true) : setTitleError(false);
         description === '' ? setDescriptionError(true) : setDescriptionError(false);
         quantity === '' ? setQuantityError(true) : setQuantityError(false);
@@ -73,9 +72,9 @@ export default function EditPost({ navigation, route }) {
             if (title && description && quantity && price) {
                 setLoading(true);
                 try {
-                    const token = await axios.post(api + 'login/getToken', { userID: userID });
+                    const token = await getToken();
                     const config = { 
-                        headers: { authorization: `Bearer ${token.data.message}`},
+                        headers: { authorization: `Bearer ${token}` },
                         data: { 
                             title: title,
                             description: description,
@@ -83,11 +82,10 @@ export default function EditPost({ navigation, route }) {
                             price: price,
                             availableFrom: dbFrom,
                             availableTo: dbTo,
-                            userID: userID,
                             postID: postID
                         }
                     };
-                    const response = await axios.post(api + 'content/editPost', config.data, { headers: config.headers });
+                    const response = await axios.post(api + 'create/editPost', config.data, { headers: config.headers });
                     if (response.status === 200) {
                         setPostSuccessDialog(true);
                     } else if (response.status === 500) {
@@ -222,7 +220,7 @@ export default function EditPost({ navigation, route }) {
                 </View>
                 <Button 
                     mode="elevated"
-                    onPress={handleCreatePost}
+                    onPress={handleEditPost}
                     disabled={loading}
                     style={[styles.button,{backgroundColor: colors.tertiary || colors.primary}]}
                     >

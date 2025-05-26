@@ -136,7 +136,7 @@ export default function UserPosts({ navigation }) {
             </View>
             <FAB
                 label='Crear publicación'
-                style={[styles.fabStyle, { backgroundColor: colors.tertiaryContainer || colors.primary }]}
+                style={[styles.fabStyle, { backgroundColor: colors.tertiaryContainer || colors.onTertiaryContainer }]}
                 icon="plus"
                 color={colors.onTertiary || colors.onPrimary}
                 onPress={() => navigation.navigate('CreatePost')}
