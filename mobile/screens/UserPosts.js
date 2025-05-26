@@ -139,7 +139,7 @@ export default function UserPosts({ navigation }) {
                 style={[styles.fabStyle, { backgroundColor: colors.tertiaryContainer || colors.onTertiaryContainer }]}
                 icon="plus"
                 color={colors.onTertiary || colors.onPrimary}
-                onPress={() => navigation.navigate('CreatePost')}
+                onPress={() => navigation.navigate('CreatePostScreen')}
             />
         </View>
     );

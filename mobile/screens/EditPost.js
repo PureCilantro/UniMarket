@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { Text, Button, HelperText, Portal, Dialog, useTheme, TextInput } from 'react-native-paper';
@@ -7,60 +8,102 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { api, getToken } from '../config/api';
 import UniText from '../components/UniText';
+=======
+import React, { useState } from "react";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Platform,
+  Alert,
+} from "react-native";
+import { TextInput, Button, useTheme } from "react-native-paper";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import axios from "axios";
+import { api, getToken } from "../config/api";
+>>>>>>> 524c9a71bed8f22b86c68246340e53877c2c4758
 
 export default function EditPost({ navigation, route }) {
-    const tittleMaxLength = 50;
-    const descriptionMaxLength = 100;
-    // State variables
-    const { postID, pTitle, pDescription, pPrice, pQuantity, pAvailableTo, pAvailableFrom } = route.params;
-    const [loading, setLoading] = useState(false);
-    const [title, setTitle] = useState(pTitle);
-    const [description, setDescription] = useState(pDescription);
-    const [quantity, setQuantity] = useState(pQuantity.toString());
-    const [price, setPrice] = useState(pPrice.toString());
-    const [availableFrom, setAvailableFrom] = useState(() => {
-        const from = pAvailableFrom.toString();
-        const hours = parseInt(from.substring(0, 2), 10);
-        const minutes = parseInt(from.substring(2, 4), 10);
-        const date = new Date();
-        date.setHours(hours);
-        date.setMinutes(minutes);
-        return date;
-    });
-    const [availableTo, setAvailableTo] = useState(() => {
-        const to = pAvailableTo.toString();
-        const hours = parseInt(to.substring(0, 2), 10);
-        const minutes = parseInt(to.substring(2, 4), 10);
-        const date = new Date();
-        date.setHours(hours);
-        date.setMinutes(minutes);
-        return date;
-    });
-    const [showFromPicker, setShowFromPicker] = useState(false);
-    const [showToPicker, setShowToPicker] = useState(false);
-    // Error variables
-    const [titleError, setTitleError] = useState(false);
-    const [descriptionError, setDescriptionError] = useState(false);
-    const [quantityError, setQuantityError] = useState(false);
-    const [priceError, setPriceError] = useState(false);
-    const [timeErrorDialog, setTimeErrorDialog] = useState(false);
-    const [postErrorDialog, setPostErrorDialog] = useState(false);
-    const [postSuccessDialog, setPostSuccessDialog] = useState(false);
+  const { colors } = useTheme();
+  const {
+    postID,
+    pTitle,
+    pDescription,
+    pQuantity,
+    pPrice,
+    pAvailableFrom,
+    pAvailableTo,
+  } = route.params;
 
+<<<<<<< HEAD
     const { colors } = useTheme();
+=======
+  // Convierte "1130" → objeto Date hoy con horas/minutos
+  const parseHHMMToDate = (hhmm) => {
+    const str = hhmm.toString().padStart(4, "0");
+    const hours = parseInt(str.slice(0, 2), 10);
+    const minutes = parseInt(str.slice(2), 10);
+    const d = new Date();
+    d.setHours(hours, minutes, 0, 0);
+    return d;
+  };
+>>>>>>> 524c9a71bed8f22b86c68246340e53877c2c4758
 
-    const formatDate = (date) => {
-        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const formatDateToHHMM = (date) => {
+    const h = date.getHours().toString().padStart(2, "0");
+    const m = date.getMinutes().toString().padStart(2, "0");
+    return `${h}${m}`;
+  };
+
+  // Estados iniciales desde route.params
+  const [title, setTitle] = useState(pTitle);
+  const [description, setDescription] = useState(pDescription);
+  const [quantity, setQuantity] = useState(pQuantity.toString());
+  const [price, setPrice] = useState(pPrice.toString());
+  const [availableFrom, setAvailableFrom] = useState(
+    parseHHMMToDate(pAvailableFrom)
+  );
+  const [availableTo, setAvailableTo] = useState(parseHHMMToDate(pAvailableTo));
+
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
+
+  const handleEdit = async () => {
+    if (!title || !description || !quantity || !price) {
+      alert("Por favor, completa todos los campos obligatorios.");
+      return;
+    }
+
+    const token = await getToken();
+    const body = {
+      postID: postID.toString(),
+      title,
+      description,
+      quantity: quantity.toString(),
+      price: price.toString(),
+      availableFrom: formatDateToHHMM(availableFrom), // e.g. "0830"
+      availableTo: formatDateToHHMM(availableTo),
     };
 
-    const dbDate = (date) => {
-        return date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }).replace(':', '')
-    };
+    try {
+      const response = await axios.post(`${api}create/editPost`, body, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-    const goBack = () => {
-        navigation.goBack();
-    };
+      console.log("Post actualizado:", response.data);
+      navigation.goBack();
+    } catch (error) {
+      console.error(
+        "Error al actualizar post:",
+        error.response?.data || error.message
+      );
+    }
+  };
 
+<<<<<<< HEAD
     const handleEditPost = async () => {
         title === '' ? setTitleError(true) : setTitleError(false);
         description === '' ? setDescriptionError(true) : setDescriptionError(false);
@@ -257,48 +300,194 @@ export default function EditPost({ navigation, route }) {
                 </Portal>
             </View>
         </View>
+=======
+  const handleDelete = async () => {
+    const token = await getToken();
+    try {
+      const response = await axios.post(
+        `${api}create/deletePost`,
+        { postID: postID.toString() },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Post eliminado:", response.data);
+      navigation.goBack();
+    } catch (error) {
+      console.error(
+        "Error al eliminar post:",
+        error.response?.data || error.message
+      );
+    }
+  };
+
+  const confirmDelete = () => {
+    Alert.alert(
+      "Eliminar publicación",
+      "¿Estás seguro de que deseas eliminar esta publicación?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: handleDelete,
+        },
+      ]
+>>>>>>> 524c9a71bed8f22b86c68246340e53877c2c4758
     );
+  };
+
+  return (
+    <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        { backgroundColor: colors.background },
+      ]}
+    >
+      <TextInput
+        label="Título"
+        value={title}
+        onChangeText={setTitle}
+        mode="outlined"
+        style={styles.input}
+      />
+
+      <TextInput
+        label="Descripción"
+        value={description}
+        onChangeText={setDescription}
+        mode="outlined"
+        multiline
+        numberOfLines={4}
+        style={[styles.input, styles.textArea]}
+      />
+
+      <TextInput
+        label="Cantidad"
+        value={quantity}
+        onChangeText={setQuantity}
+        mode="outlined"
+        keyboardType="numeric"
+        style={styles.input}
+      />
+
+      <TextInput
+        label="Precio"
+        value={price}
+        onChangeText={setPrice}
+        mode="outlined"
+        keyboardType="numeric"
+        style={styles.input}
+      />
+
+      {/* Hora disponible desde */}
+      <View style={styles.timeRow}>
+        <Button
+          mode="outlined"
+          onPress={() => setShowFromPicker(true)}
+          style={styles.timeButton}
+        >
+          Desde:{" "}
+          {`${availableFrom
+            .getHours()
+            .toString()
+            .padStart(2, "0")}:${availableFrom
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`}
+        </Button>
+        {showFromPicker && (
+          <DateTimePicker
+            mode="time"
+            value={availableFrom}
+            is24Hour
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={(event, selectedDate) => {
+              setShowFromPicker(Platform.OS === "ios");
+              if (selectedDate) {
+                setAvailableFrom(selectedDate);
+              }
+            }}
+          />
+        )}
+      </View>
+
+      {/* Hora disponible hasta */}
+      <View style={styles.timeRow}>
+        <Button
+          mode="outlined"
+          onPress={() => setShowToPicker(true)}
+          style={styles.timeButton}
+        >
+          Hasta:{" "}
+          {`${availableTo
+            .getHours()
+            .toString()
+            .padStart(2, "0")}:${availableTo
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`}
+        </Button>
+        {showToPicker && (
+          <DateTimePicker
+            mode="time"
+            value={availableTo}
+            is24Hour
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={(event, selectedDate) => {
+              setShowToPicker(Platform.OS === "ios");
+              if (selectedDate) {
+                setAvailableTo(selectedDate);
+              }
+            }}
+          />
+        )}
+      </View>
+
+      <Button mode="contained" onPress={handleEdit} style={styles.button}>
+        Guardar cambios
+      </Button>
+
+      <Button
+        mode="outlined"
+        onPress={confirmDelete}
+        style={[styles.button, styles.deleteButton]}
+        labelStyle={{ color: colors.error }}
+      >
+        Eliminar publicación
+      </Button>
+    </ScrollView>
+  );
 }
+
 const styles = StyleSheet.create({
-    container: {
-        justifyContent: 'center',
-        paddingHorizontal: 16,
-        marginTop: 16,
-    },
-    title: {
-        fontSize: 24,
-        marginBottom: 16,
-        marginTop: 16,
-        textAlign: 'center',
-        right: '25%',
-        position: 'absolute',
-    },
-    button: {
-        alignSelf: 'center',
-        marginTop: 10,
-        width: '60%',
-    },
-    rowTimeContainer: {
-        flexDirection: 'row', 
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        alignSelf: 'center',
-        width: '70%',
-    },
-    rowContainer: {
-        flexDirection: 'row', 
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-    },
-    timeButton: {
-        marginVertical: 10,
-        width: '40%',
-    },
-    helperRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    counter: {
-        textAlign: 'right',
-    },
+  container: {
+    padding: 16,
+    flexGrow: 1,
+  },
+  input: {
+    marginBottom: 16,
+  },
+  textArea: {
+    height: 100,
+  },
+  timeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  timeButton: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  button: {
+    marginTop: 16,
+  },
+  deleteButton: {
+    borderColor: "transparent",
+    marginTop: 8,
+  },
 });
