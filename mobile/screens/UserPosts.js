@@ -6,6 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from '@expo/vector-icons/Feather';
 import axios from 'axios';
 
+import CreatePost from './CreatePost';
+
 import { api, getToken } from '../config/api';
 import UniUserCard from '../components/UniUserCard';
 
@@ -139,7 +141,7 @@ export default function UserPosts({ navigation }) {
                 style={[styles.fabStyle, { backgroundColor: colors.tertiaryContainer || colors.primary }]}
                 icon="plus"
                 color={colors.onTertiary || colors.onPrimary}
-                onPress={() => navigation.navigate('CreatePost')}
+                onPress={() => navigation.navigate('CreatePostScreen')}
             />
         </View>
     );

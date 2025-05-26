@@ -14,8 +14,8 @@ import UserPostsScreen from './screens/UserPosts';
 import PostDetailScreen from './screens/PostDetails';
 import EditPostScreen from './screens/EditPost';
 /* import SettingsScreen from './screens/Settings';
-import CreatePostScreen from './screens/CreatePost';
 */
+import CreatePostScreen from './screens/CreatePost';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -70,8 +70,9 @@ export default function App() {
                             <Stack.Screen name="UserPostsScreen" component={UserPostsScreen} options={{headerShown: false}} />
                             <Stack.Screen name="PostDetailScreen" component={PostDetailScreen} options={{headerShown: false}} />
                             <Stack.Screen name="EditPostScreen" component={EditPostScreen} options={{headerShown: false}} />
-                            {/* <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{headerShown: false}} />
                             <Stack.Screen name="CreatePostScreen" component={CreatePostScreen} options={{headerShown: false}} />
+
+                            {/* <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{headerShown: false}} />
                              */}
                         </Stack.Navigator>
                     </NavigationContainer>
